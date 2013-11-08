@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/appstyle.css">
+        <title>messaging demo</title>
+        <meta name="description" content="action messaging">
+        <script type="text/javascript" data-main="appscripts/main.js" src="jslibs/require.js"></script>
+    </head>
+    <body >
+    <div id="wrapper">
+
+        <div id="app">
+            <h3> Shared Scrolling "Anticipatory" Score </h3><br>
+            <div id="test_intro">  
+            Join a room to share your sonic scribbles with others. Tested with Chrome and Safari on Macs, PCs, Andoird, tablets, and phones. <br>
+            If your device is not webAudio enabled, you can still be a "remote controller" in the space - to listen, just be within earshot of a webAudio device with a browser pointed to the same room.            
+            <br>
+            The server is in the States.
+            </div>
+            <div id="display">
+                <div id="timeLabelDiv">
+                    Time 
+                </div>
+                <div id="timeDisplayDiv">
+            	   Time 
+                </div>
+
+                <div id="app">
+
+                    <span id="slider_area">
+                        (w)
+                        <canvas id="slidercanvas1"></canvas>
+                        (x)
+                    </span>   
+
+                    <span id="scoreSpan">
+                        <canvas id="score"></canvas>
+                    </span>
+
+
+                    <span id="radioSelect">
+                        <div id="radioSelectDiv">
+                           Input type:<br>
+                           <div>
+                            <input type="radio"  name="radioSelect"  id="radioSpray" value="spray">Event Spray<br>
+                            </div>
+                            <div>
+                                <input type="radio"  name="radioSelect" id="radioContour" value="contour">Contour<br>
+                            </div>
+                            <div hidden>
+                                <input type="radio"  name="radioSelect" id="radioPitch" value="pitch">Pitch<br>
+                            </div>
+
+                            <div hidden>
+                                <input type="radio"  name="radioSelect" id="radioRhythm" value="rhythm">Rhythm<br>
+                            </div>
+
+                           <div hidden>
+                                <input type="radio"  name="radioSelect" id="radioChord" value="chord">Chord<br>
+                            </div>
+
+
+                        </div>
+                    </span>
+
+
+                    <!-- These three divs alternat visibility depending on the radio button selection above -->
+                    <span hidden>
+                        <div class="myTabs" id="pitchTab">
+                        </div>
+
+                         <div class="myTabs" id="rhythmTab">
+                        </div>
+
+                         <div class="myTabs" id="chordTab">
+                        </div>
+
+
+                        <div class="myTabs" id="contourTab">
+                            contour tab
+                        </div>
+
+                        <div class="myTabs" id="sprayTab">
+                            spray tab
+                        </div>
+
+                     </span>
+
+                </div>
+
+            <div id="control_section">
+                Join a room:
+                <select id="roomList">
+                    <option></option>
+                    <option>defaultRoom</option>
+                </select>
+                <div id="room_textbox">
+                    <p>You are in room: <input type="text" id="current_room" size="20"></p>
+                </div>
+
+            </div><!-- display -->
+            </div>  
+         </div>
+    </body>
+</html>
+

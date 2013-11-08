@@ -1,0 +1,245 @@
+body
+{
+	background-color:black;
+	color:white;
+}
+h3 {
+	color:white;
+/*	-webkit-user-select: none; */
+	text-align: center
+}
+
+
+/* ----------------------------------------------------------------------
+  Hide radio button (the round disc)
+  we will use just the label to create pushbutton effect
+*/
+input[name=pradio] {
+    display:none; 
+    margin:10px;
+}
+/*
+  Change the look'n'feel of labels (which are adjacent to radiobuttons).
+  Add some margin, padding to label
+*/
+input[name=pradio] + label {
+    display:inline-block;
+    margin: 2px;
+    padding: 4px 12px;
+    background-color: #0000FF;
+    border-color: black;
+}
+/*
+ Change background color for label next to checked radio button
+ to make it look like highlighted button
+*/
+input[name=pradio]:checked + label { 
+	color: black;
+	font-weight: "900";
+   background-image: none;
+    
+    //background-color:#d0d0d0;
+    background-color: #00BB00;
+}
+td
+{
+text-align:center;
+}
+
+/*---------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+  Hide radio button (the round disc)
+  we will use just the label to create pushbutton effect
+*/
+input[name=rradio] {
+    display:none; 
+    margin:10px;
+}
+/*
+  Change the look'n'feel of labels (which are adjacent to radiobuttons).
+  Add some margin, padding to label
+*/
+input[name=rradio] + label {
+    display:inline-block;
+    margin: 2px;
+    padding: 4px 12px;
+    background-color: #0000FF;
+    border-color: black;
+}
+/*
+ Change background color for label next to checked radio button
+ to make it look like highlighted button
+*/
+input[name=rradio]:checked + label { 
+	color: black;
+	fontWeight="900";
+   background-image: none;
+    
+    //background-color:#d0d0d0;
+    background-color: #00BB00;
+}
+td
+{
+text-align:center;
+}
+
+/*---------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+  Hide radio button (the round disc)
+  we will use just the label to create pushbutton effect
+*/
+input[name=cradio] {
+    display:none; 
+    margin:10px;
+}
+/*
+  Change the look'n'feel of labels (which are adjacent to radiobuttons).
+  Add some margin, padding to label
+*/
+input[name=cradio] + label {
+    display:inline-block;
+    margin: 2px;
+    padding: 4px 12px;
+    background-color: #0000FF;
+    border-color: black;
+}
+/*
+ Change background color for label next to checked radio button
+ to make it look like highlighted button
+*/
+input[name=cradio]:checked + label { 
+	color: black;
+	fontWeight="900";
+   background-image: none;
+    
+    //background-color:#d0d0d0;
+    background-color: #00BB00;
+}
+td
+{
+text-align:center;
+}
+
+/*---------------------------------------------------------------- */
+
+#display{
+	width: 100%;
+}
+#timeLabelDiv
+{
+color:white;
+	-webkit-user-select: none;
+	width: 88%;
+	text-align: center	
+}
+
+#timeDisplayDiv
+{
+color:white;
+	-webkit-user-select: none;
+	width: 88%;
+	text-align: center	
+}
+//-----------------------------------------------------------------
+#app{
+	width: 100%;
+	overflow: hidden;
+
+}
+/* http://jsfiddle.net/ArondeParon/SPjsf/15/ */
+/* http://css-infos.net/property/-webkit-appearance */
+#slider_area {
+	-webkit-user-select: none;
+	color:blue;
+	text-align: center;	
+	border:1px solid #0000FF;
+    width: 5%;
+    height:300px;
+    margin-right:2%;
+    float:left;
+
+
+}
+#slidercanvas1 {
+	-webkit-user-select: none;
+    width: 100%;
+    height:240px;
+    //float:left;
+}
+
+.scoreSpan{
+
+}
+
+#score {
+	/* -webkit-user-select: none; */
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	width: 55%;
+	height:300px;
+	border:3px solid #0000FF;
+
+}
+
+#radioSelect {
+	//border:1px solid green;
+
+}
+#radioSelectDiv{
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	width: 12%;
+	height:300px;	
+	vertical-align:top;
+	display: inline-block;  
+	border:1px solid #0000FF;
+	//float:right;
+}
+
+
+.myTabs{
+	border:1px solid #0000FF;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	width: 20%;
+	height:300px;
+	vertical-align:top;
+	display: none;  // set in code to "none" or "inline-block"
+
+	//float:right;
+
+}
+#control_section{
+	float:right;
+}
+
+
+
+
+#roomList{
+	float:right;
+	border:1px solid #0000FF;
+	background-color:grey;
+}
+#room_textbox
+{
+}
+#current_room{
+	border:1px solid #0000FF;
+	background-color:grey;	
+}
+
+#end_text {
+	color:white;
+}
+
+
+
+
+
