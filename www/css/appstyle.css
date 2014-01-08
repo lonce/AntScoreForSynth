@@ -239,6 +239,16 @@ color:white;
 	color:white;
 }
 
+#Credits {
+	font-family:Calibri ; font-size:10px; 
+}
+
+#soundToggleButtonDiv {
+	position:relative;
+	bottom: 0;
+}
+
+
 
 
 

@@ -59,8 +59,22 @@ require(
 		var radioRhythm = window.document.getElementById("radioRhythm");
 		var radioChord = window.document.getElementById("radioChord");
 
-		var radioSelection = "contour"; // by default
+		var toggleSoundButton = window.document.getElementById("soundToggleButton");
+		var toggleSoundState=1;
 
+		//initialize sound band
+		if(config.webketAudioEnabled){
+				soundbank.create(toggleSoundState*12); // max polyphony 
+		}
+
+		toggleSoundButton.onclick=function(){
+			toggleSoundState=(toggleSoundState+1)%2;
+			if(config.webketAudioEnabled){
+				soundbank.create(toggleSoundState*12); // max polyphony 
+			}
+		}
+
+		var radioSelection = "contour"; // by default
 
 		window.addEventListener("keydown", keyDown, true);
 

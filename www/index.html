@@ -13,17 +13,15 @@
         <div id="app">
             <h3> Shared Scrolling "Anticipatory" Score </h3><br>
             <div id="test_intro">  
-            Join a room to share your sonic scribbles with others. Tested with Chrome and Safari on Macs, PCs, Andoird, tablets, and phones. <br>
-            If your device is not webAudio enabled, you can still be a "remote controller" in the space - to listen, just be within earshot of a webAudio device with a browser pointed to the same room.            
-            <br>
-            The server is in the States.
+            Join a room to collaborate with others on your sonic scribbles. <br>
+            You can play with others with your local sound on or off (and if your device is not webAudio enabled, you can still play - to listen, just be within earshot of another sound-enabled player.            
             </div>
             <div id="display">
                 <div id="timeLabelDiv">
                     Time 
                 </div>
                 <div id="timeDisplayDiv">
-            	   Time 
+                   Time 
                 </div>
 
                 <div id="app">
@@ -60,12 +58,17 @@
                                 <input type="radio"  name="radioSelect" id="radioChord" value="chord">Chord<br>
                             </div>
 
+                            <div id="soundToggleButtonDiv" >
+                                <input id="soundToggleButton" type="button" value="Sound Toggle"> 
+                            </div>
+
 
                         </div>
+
                     </span>
 
 
-                    <!-- These three divs alternat visibility depending on the radio button selection above -->
+                    <!-- These three divs alternate visibility depending on the radio button selection above -->
                     <span hidden>
                         <div class="myTabs" id="pitchTab">
                         </div>
@@ -102,6 +105,18 @@
             </div><!-- display -->
             </div>  
          </div>
+ 
+
+
+        <div id="Credits">
+        <a href="http://anclab.org">Arts and Creativity Lab, IDMI</a> / <a href="http://www.fas.nus.edu.sg/cnm/">Communications and New Media Department, National University of Singapore</a><br> 
+        <b>Also see:</b> <a href="https://github.com/lonce/jsaSound"> https://github.com/lonce/jsaSound</a> <br />
+        <b>Tested with Chrome and Safari on Macs, PCs, Andoird, tablets, and phones. <br />
+        <b>Lonce Wyse</b>
+        </div>
+
+
+
     </body>
 </html>
 
