@@ -59,8 +59,27 @@ require(
 		var radioRhythm = window.document.getElementById("radioRhythm");
 		var radioChord = window.document.getElementById("radioChord");
 
+		var timeLockButton = window.document.getElementById("timeLockButton");
+		var toggleTimeLockState=0;
+		timeLockButton.style.background='#590000';
+
+		timeLockButton.onclick=function(){
+			toggleTimeLockState=(toggleTimeLockState+1)%2;
+			if (toggleTimeLockState===0){
+				timeLockButton.style.background='#590000';
+			} else {
+				timeLockButton.style.background='#005900';
+			}
+		}
+
+		var timeLockSlider = window.document.getElementById("timeLockSlider");
+	
+
 		var toggleSoundButton = window.document.getElementById("soundToggleButton");
 		var toggleSoundState=1;
+		toggleSoundButton.style.background='#005900';
+
+
 
 		//initialize sound band
 		if(config.webketAudioEnabled){
@@ -72,7 +91,13 @@ require(
 			if(config.webketAudioEnabled){
 				soundbank.create(toggleSoundState*12); // max polyphony 
 			}
+			if (toggleSoundState===0){
+				toggleSoundButton.style.background='#590000';
+			} else {
+				toggleSoundButton.style.background='#005900';
+			}
 		}
+
 
 		var radioSelection = "contour"; // by default
 
@@ -306,7 +331,9 @@ require(
 			// Add to currently-in-progress mouse gesture if any drawing is going on ------------------
 			if (current_mgesture) {
 				var m = utils.getCanvasMousePosition(theCanvas, last_mousemove_event);
-				var tx=elapsedtime + px2Time(m.x);
+				var tx= (toggleTimeLockState===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+
+
 
 				if (current_mgesture && current_mgesture.type === 'mouseContourGesture'){
 					// drawn contours must only go up in time
@@ -385,10 +412,31 @@ require(
 			context.moveTo(nowLinePx, 0);
 			context.lineTo(nowLinePx, theCanvas.height);
 			context.stroke();
+			context.closePath();
 
 			lastDrawTime=elapsedtime;
 
+			//--------------------------------------------
+			// Draw the timeLocked line if necessary
+			//slider
+			if (toggleTimeLockState===1){
+				//console.log ("slider val is " + timeLockSlider.value);
+
+				sTime=elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				sPx= time2Px(sTime);
+
+				context.strokeStyle = "#FFFF00";
+				context.lineWidth =1;
+				context.beginPath();					
+				context.moveTo(sPx, 0);
+				context.lineTo(sPx, theCanvas.height);
+				context.stroke();
+				context.closePath();
+			}
+
 		}
+
+
 
 
 		function explosion(x, y, size1, color1, size2, color2) {
@@ -499,7 +547,8 @@ require(
 		function onMouseDown(e){
 			event.preventDefault();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
-			var x = m.x;
+			var x= (toggleTimeLockState===0) ? m.x : nowLinePx+theCanvas.width*(2/3)*timeLockSlider.value;
+			console.log("x value is " + x);
 			var y = m.y;
 
 			initiateContour(x, y);
@@ -561,7 +610,7 @@ require(
 
 		var favBrowser = function(){
 			var mylist=document.getElementById("myList");
-			document.getElementById("current_room").value=mylist.options[mylist.selectedIndex].text;
+			//document.getElementById("current_room").value=mylist.options[mylist.selectedIndex].text;
 		}
 
 		roomselect.addEventListener('change', function(e) {
@@ -570,7 +619,7 @@ require(
 
         	myRoom  = e.currentTarget.value;
         	//document.getElementById("current_room").value=mylist.options[mylist.selectedIndex].text;
-        	document.getElementById("current_room").value=myRoom;
+        	//document.getElementById("current_room").value=myRoom;
 
 			if (myRoom != '') {
         		// just choose a default room (rather than getting a list from the server and choosing)

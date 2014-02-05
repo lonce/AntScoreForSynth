@@ -1,42 +1,40 @@
 <!DOCTYPE html>
-
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="css/appstyle.css">
-        <title>messaging demo</title>
-        <meta name="description" content="action messaging">
-        <script type="text/javascript" data-main="appscripts/main.js" src="jslibs/require.js"></script>
-    </head>
-    <body >
-    <div id="wrapper">
+  <head>
+     <link rel="stylesheet" type="text/css" href="css/blockstyle.css">
+     <link rel="stylesheet" type="text/css" href="css/appstyle.css">      
+     <meta name="viewport" content="width=device-width,height=device-height,user-scalable=no"> 
+     <script type="text/javascript" data-main="appscripts/main.js" src="jslibs/require.js"></script>
 
-        <div id="app">
-            <h3> Shared Scrolling "Anticipatory" Score </h3><br>
-            <div id="test_intro">  
-            Join a room to collaborate with others on your sonic scribbles. <br>
-            You can play with others with your local sound on or off (and if your device is not webAudio enabled, you can still play - to listen, just be within earshot of another sound-enabled player.            
-            </div>
-            <div id="display">
-                <div id="timeLabelDiv">
-                    Time 
-                </div>
-                <div id="timeDisplayDiv">
+  </head>
+<body>
+
+<div id="wrap">
+
+	<div id="block0" >
+        <div id="block0a">
+        </div>
+        <div id="block0b">
+		  <h3 style="margin-bottom:0; ">"Anticipatory" Score</h3>
+        </div>
+        <div id="block0c" >
+                <span id="timeLabelDiv" >
+                    Time:  
+                </span>
+                <span id="timeDisplayDiv" >
                    Time 
-                </div>
+                </span>
+        </div>
+	</div>
 
-                <div id="app">
-
-                    <span id="slider_area">
-                        (w)
+    <div id="block1">
+        <div id="block1a">
                         <canvas id="slidercanvas1"></canvas>
-                        (x)
-                    </span>   
-
-                    <span id="scoreSpan">
-                        <canvas id="score"></canvas>
-                    </span>
-
-
+        </div>
+        <div id="block1b">
+        	            <canvas id="score"></canvas>
+        </div>
+        <div id="block1c">
                     <span id="radioSelect">
                         <div id="radioSelectDiv">
                            Input type:<br>
@@ -58,14 +56,10 @@
                                 <input type="radio"  name="radioSelect" id="radioChord" value="chord">Chord<br>
                             </div>
 
-                            <div id="soundToggleButtonDiv" >
-                                <input id="soundToggleButton" type="button" value="Sound Toggle"> 
-                            </div>
 
+                        </div>     
 
-                        </div>
-
-                    </span>
+                    </span> 
 
 
                     <!-- These three divs alternate visibility depending on the radio button selection above -->
@@ -88,35 +82,53 @@
                             spray tab
                         </div>
 
-                     </span>
+                     </span>                      	
 
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="block3">
+        <div id="block3a"></div>
+        <div id="block3b">
+
+                <div id="soundToggleButtonDiv" >
+                            <input id="soundToggleButton" type="button" value="Sound Toggle"> 
                 </div>
-
-            <div id="control_section">
+                <div class="timebuttondiv" >
+                            <input id="timeLockButton" type="button" value="Time Lock" > 
+                </div>
+        </div>
+        <div id="block3c">
+            <input id="timeLockSlider" type="range" name="points" step=".01" min="0.001" max="1">
+        </div>
+        <div id="block3d">
+        	
+        	<div id="control_section">
                 Join a room:
                 <select id="roomList">
                     <option></option>
                     <option>defaultRoom</option>
                 </select>
-                <div id="room_textbox">
-                    <p>You are in room: <input type="text" id="current_room" size="20"></p>
-                </div>
-
+                <!--
+                        <div id="room_textbox">
+                            <p>You are in room: <input type="text" id="current_room" size="20"></p>
+                        </div>
+                -->
             </div><!-- display -->
-            </div>  
-         </div>
- 
+
+        </div>
+    </div>
 
 
-        <div id="Credits">
-        <a href="http://anclab.org">Arts and Creativity Lab, IDMI</a> / <a href="http://www.fas.nus.edu.sg/cnm/">Communications and New Media Department, National University of Singapore</a><br> 
+	<div id="footer" >
+	        <a href="http://anclab.org">Arts and Creativity Lab, IDMI</a> / <a href="http://www.fas.nus.edu.sg/cnm/">Communications and New Media Department, National University of Singapore</a><br> 
         <b>Also see:</b> <a href="https://github.com/lonce/jsaSound"> https://github.com/lonce/jsaSound</a> <br />
         <b>Tested with Chrome and Safari on Macs, PCs, Andoird, tablets, and phones. <br />
         <b>Lonce Wyse</b>
-        </div>
 
+	</div>
 
+</div>
 
-    </body>
+</body>
 </html>
-
