@@ -409,7 +409,7 @@ require(
 					var dispe = displayElements[dispElmt];	
 
 					//console.log("draw event of type " + dispe.type);				
-					dispe.draw(context, time2Px, nowishP);
+					dispe.draw(context, time2Px, nowishP, t_sinceOrigin);
 
 
 					// If element is just crossing the "now" line, create little visual explosion

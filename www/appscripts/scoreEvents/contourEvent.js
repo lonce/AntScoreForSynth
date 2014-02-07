@@ -1,6 +1,7 @@
 define(
 	["soundbank", "config"],
 	function (soundbank, config) {
+      var tempy;
       return function (){
 
          var kScaleMI=.15;
@@ -18,7 +19,7 @@ define(
             // args: 
             //  ctx - 2D canvax drawing contex
             //  time2Px = function for translating the time sampls on these objects to pixel for drawing
-            draw: function(ctx, time2Px, nowishP){
+            draw: function(ctx, time2Px, nowishP, now){
 
                var dispPx=time2Px(this.d[0][0]);
                      // If crossing the "now" line, make a little explosion
@@ -46,11 +47,24 @@ define(
                ctx.lineWidth = 1;
                //console.log("drawing - datalenght = " + this.d.length+ ", color = " + ctx.strokeStyle + ", px = "+ dispPx + ", " + this.d[0][1]);
                for(var n=0;n<this.d.length;n++){
-                  
-                  if (nowishP(this.d[n][0])){
-                     this.snd && this.snd.setParamNorm("Carrier Frequency", 1-this.d[n][1]/ctx.canvas.height);
-                     this.snd && this.snd.setParamNorm("Modulation Index", kScaleMI*(1-this.d[n][2]));
+
+                  // Send parameter updates on every frame, interpolating between the segment endpoints we are in
+                  if (n<this.d.length-1){
+                     if (this.snd && ((this.d[n][0] < now) && (this.d[n+1][0] > now))){
+                        console.log("in segment " + n);
+                        // y0 + (x1-x0)(y-y0)/(x1-x0) for the height parameter
+                        tempy=this.d[n][1] + (now-this.d[n][0])*((this.d[n+1][1] -this.d[n][1])) / (this.d[n+1][0] -this.d[n][0]);
+                        this.snd.setParamNorm("Carrier Frequency", 1-tempy/ctx.canvas.height);
+
+                        // y0 + (x1-x0)(y-y0)/(x1-x0) for the slider val parameter 
+                        tempy=this.d[n][2] + (now-this.d[n][0])*((this.d[n+1][2] -this.d[n][2])) / (this.d[n+1][0] -this.d[n][0]);
+                        this.snd.setParamNorm("Modulation Index", kScaleMI*(1-tempy));
+
+
+                     }
                   }
+
+
                   ctx.lineTo(time2Px(this.d[n][0]), this.d[n][1]);
                }
                // "turn around" the end
