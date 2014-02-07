@@ -2,6 +2,10 @@
 {
     padding: 0;
     margin: 0;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
 }
 html, body
 {
@@ -143,12 +147,12 @@ html, body
     }
 
 
-.clear { clear: both; }
+/* .clear { clear: both; } */
 
 #footer{
     background-color:black;
     height: 10%;
-    clear:both;
+ /*   clear:both; */
     font-family:Calibri ; font-size:10px;
     /*text-align:center;*/
 }

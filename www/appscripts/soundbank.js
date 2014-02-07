@@ -5,7 +5,7 @@
 	in calls to the ScriptAudioNode generate audio functions!!!
 */
 define(
-	["config", "require", "jsaSound/jsaModels/jsaFM"],
+	["config", "require", "jsaSound/jsaModels/jsaFMnative"],
 	function (config, require, sndFactory) {
 
 

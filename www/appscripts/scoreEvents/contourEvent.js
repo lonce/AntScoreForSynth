@@ -56,7 +56,12 @@ define(
                // "turn around" the end
                if (nowishP(this.d[n-1][0])){
                   //console.log("contour end across now, and this.snd is " + this.snd);
-                  this.snd && this.snd.release();
+                  if ((this.d[n-1][0] - this.d[0][0]) < config.minSndDuration) {
+                     console.log("enforcing minimum contour duration law");
+                     this.snd && this.snd.qrelease(config.minSndDuration);
+                  } else {
+                     this.snd && this.snd.release();
+                  }
                   this.snd && this.soundbank.releaseSnd(this.snd); 
                }
                ctx.lineTo(time2Px(this.d[n-1][0]), this.d[n-1][1]-this.d[n-1][2]);

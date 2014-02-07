@@ -154,7 +154,7 @@ require(
 		var m_rTab=rhythmTabFactory();
 		var m_cTab=chordTabFactory();
 
-		var k_sprayPeriod = 20;// ms between sprayed events
+		var k_sprayPeriod = 100;// ms between sprayed events
 		var m_lastSprayEvent = 0; // time (rel origin) of the last spray event (not where on the score, but when it happened. 
 
 
@@ -528,7 +528,9 @@ require(
 		function endContour(){
 			//console.log("current event is " + current_mgesture + " and the data length is " + current_mgesture.d.length);
 			current_mgesture.b=current_mgesture.d[0][0];
+			//console.log("contour length is " + current_mgesture.d.length);
 			current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
+			console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
 			if (myRoom != '') {
 				console.log("sending event");
