@@ -57,7 +57,7 @@ define(
                if (nowishP(this.d[n-1][0])){
                   //console.log("contour end across now, and this.snd is " + this.snd);
                   if ((this.d[n-1][0] - this.d[0][0]) < config.minSndDuration) {
-                     console.log("enforcing minimum contour duration law");
+                     //console.log("enforcing minimum contour duration law");
                      this.snd && this.snd.qrelease(config.minSndDuration);
                   } else {
                      this.snd && this.snd.release();

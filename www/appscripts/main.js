@@ -59,13 +59,28 @@ require(
 		var radioRhythm = window.document.getElementById("radioRhythm");
 		var radioChord = window.document.getElementById("radioChord");
 
+		var yLockButton = window.document.getElementById("yLockButton");
+		var toggleYLockP=0;
+		var yLockVal;
+		yLockButton.style.background='#590000';
+
+		yLockButton.onclick=function(){
+			toggleYLockP=(toggleYLockP+1)%2;
+			if (toggleYLockP===0){
+				yLockButton.style.background='#590000';
+			} else {
+				yLockButton.style.background='#005900';
+			}
+		}
+
+
 		var timeLockButton = window.document.getElementById("timeLockButton");
-		var toggleTimeLockState=0;
+		var toggleTimeLockP=0;
 		timeLockButton.style.background='#590000';
 
 		timeLockButton.onclick=function(){
-			toggleTimeLockState=(toggleTimeLockState+1)%2;
-			if (toggleTimeLockState===0){
+			toggleTimeLockP=(toggleTimeLockP+1)%2;
+			if (toggleTimeLockP===0){
 				timeLockButton.style.background='#590000';
 			} else {
 				timeLockButton.style.background='#005900';
@@ -331,21 +346,21 @@ require(
 			// Add to currently-in-progress mouse gesture if any drawing is going on ------------------
 			if (current_mgesture) {
 				var m = utils.getCanvasMousePosition(theCanvas, last_mousemove_event);
-				var tx= (toggleTimeLockState===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
-
-
+				var tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				var ty = (toggleYLockP===0)? m.y : yLockVal;
+			
 
 				if (current_mgesture && current_mgesture.type === 'mouseContourGesture'){
 					// drawn contours must only go up in time
 					if (tx > current_mgesture.d[current_mgesture.d.length-1][0]){
-						current_mgesture.d.push([tx, m.y, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
-						current_mgesture_2send.d.push([tx, m.y, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
+						current_mgesture.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
+						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 					}
 				} 
 				if (current_mgesture &&  current_mgesture.type === 'mouseEventGesture'){
 					if (elapsedtime > (m_lastSprayEvent+k_sprayPeriod)){
-						current_mgesture.d.push([tx, m.y, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
-						current_mgesture_2send.d.push([tx, m.y, k_minLineThickness + k_maxLineThickness*leftSlider.value]);						
+						current_mgesture.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
+						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);						
 						m_lastSprayEvent  = Date.now()-timeOrigin;
 					}
 					// drawn contours must only go up in time
@@ -419,7 +434,7 @@ require(
 			//--------------------------------------------
 			// Draw the timeLocked line if necessary
 			//slider
-			if (toggleTimeLockState===1){
+			if (toggleTimeLockP===1){
 				//console.log ("slider val is " + timeLockSlider.value);
 
 				sTime=elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
@@ -549,9 +564,14 @@ require(
 		function onMouseDown(e){
 			event.preventDefault();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
-			var x= (toggleTimeLockState===0) ? m.x : nowLinePx+theCanvas.width*(2/3)*timeLockSlider.value;
+			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+theCanvas.width*(2/3)*timeLockSlider.value;
 			console.log("x value is " + x);
+
 			var y = m.y;
+
+			if (toggleYLockP===1){
+				yLockVal=m.y
+			}
 
 			initiateContour(x, y);
 			last_mousemove_event=e;

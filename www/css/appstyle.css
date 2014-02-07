@@ -246,28 +246,40 @@ color:white;
 
 #soundToggleButtonDiv {
 	float: left; 
-	padding-top: 3%;
-	position:relative;
-	bottom: 0;
+	padding: 3%;
+
 }
 
 #soundToggleButton {
 	color: white;
 
 }
-.timebuttondiv {
+
+#yLockButtonDiv {
+	float: right; 
+	padding: 3%;
+
+}
+
+#yLockButton {
+	color: white;
+
+}
+
+
+#timebuttondiv {
         float: right; 
         padding: 3%;
+}
+#timeLockButton {
+	color: white;
+
 }
 
 #timeLockSlider {
 	width: 100%;
 }
 
-#timeLockButton {
-	color: white;
-
-}
 
 
 
