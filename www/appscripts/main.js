@@ -2,7 +2,7 @@
 	There is also a metronome tick that comes the server (totally unrelated to the event chat functionality).
 	We register for the following messages:
 		init - sent by the server after the client connects. Data returned is an id that the server and other clients will use to recognizes messages from this client.
-		mouseContourGesture - sent when another chatroom member generates a mouse click. Data is x, y of their mouse position on their canvas.
+		mouseContourGesture - sent when select chatroom member generates a mouse click. Data is x, y of their mouse position on their canvas.
 		metroPulse - sent by the server evdispPxery second to all chatroom members. Data is the server Date.now.
 		startTime  - sent when another chatroom member requests a new time origin. Data is the server Date.now.
 */
@@ -21,9 +21,9 @@ require.config({
 	}
 });
 require(
-	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank", "scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab", "config"],
+	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank", "scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
 
-	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, config) {
+	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
 
 
 
@@ -37,6 +37,8 @@ require(
 		var displayElements = [];  // list of all items to be displayed on the score
 		var colorIDMap=[]; // indexed by client ID
 		var current_remoteEvent=[]; // indexed by client ID
+
+		var g_selectModeP = false;
 
 		var m_lastDisplayTick=0;
 		var m_tickCount=0;
@@ -55,6 +57,8 @@ require(
 		var leftSlider = canvasSlider(window,"slidercanvas1");
 		var radioSpray = window.document.getElementById("radioSpray"); 
 		var radioContour = window.document.getElementById("radioContour");
+		var radioText = window.document.getElementById("radioText");
+		var radioSelect = window.document.getElementById("radioSelect");
 		var radioPitch = window.document.getElementById("radioPitch");
 		var radioRhythm = window.document.getElementById("radioRhythm");
 		var radioChord = window.document.getElementById("radioChord");
@@ -141,6 +145,17 @@ require(
 			radioSelection = this.value;
 			setTab("contourTab");
 		};
+		radioText.onclick=function(){
+			radioSelection = this.value;
+			setTab("textTab");
+		};
+
+		radioSelect.onclick=function(){
+			radioSelection = this.value;
+			setTab("selectTab");
+
+		};
+
 		radioPitch.onclick=function(){
 			radioSelection = this.value;
 			setTab("pitchTab");
@@ -158,16 +173,25 @@ require(
 		var setTab=function(showTab){
 			window.document.getElementById("contourTab").style.display="none";
 			window.document.getElementById("sprayTab").style.display="none";
+			window.document.getElementById("textTab").style.display="none";
 			window.document.getElementById("pitchTab").style.display="none";
 			window.document.getElementById("rhythmTab").style.display="none";
 			window.document.getElementById("chordTab").style.display="none";
+			window.document.getElementById("selectTab").style.display="none";
 
 			window.document.getElementById(showTab).style.display="inline-block";
+			if (showTab === "selectTab"){
+				g_selectModeP=true;
+			} else{
+				g_selectModeP=false;
+			}	
 		}
 
 		var m_pTab=pitchTabFactory();
 		var m_rTab=rhythmTabFactory();
 		var m_cTab=chordTabFactory();
+		var m_tTab=textTabFactory();
+		var m_sTab=selectTabFactory();
 
 		var k_sprayPeriod = 100;// ms between sprayed events
 		var m_lastSprayEvent = 0; // time (rel origin) of the last spray event (not where on the score, but when it happened. 
@@ -290,9 +314,9 @@ require(
 		context.font="9px Arial";
 
 		var scoreWindowTimeLength=20000; //ms
-		var pixelShiftPerMs=theCanvas.width/(scoreWindowTimeLength);
+		var pixelShiftPerMs=1*theCanvas.width/(scoreWindowTimeLength);
 		var pxPerSec=pixelShiftPerMs*1000;
-		var nowLinePx=theCanvas.width/3;
+		var nowLinePx=1*theCanvas.width/3;
 		var pastLinePx=-20; // after which we delete the display elements
 
 		var sprocketHeight=2;
@@ -300,7 +324,7 @@ require(
 		var sprocketInterval=1000; //ms
 
 		var numTracks = 4;
-		var trackHeight=theCanvas.height / numTracks;
+		var trackHeight=1*theCanvas.height / numTracks;
 		var trackY =[]; // array of y-values (pixels) that devide each track on the score
 		for (var i=0;i<numTracks;i++){
 			trackY[i]=i*trackHeight;
@@ -341,7 +365,7 @@ require(
 
 		function drawScreen(elapsedtime) {
 
-			context.clearRect(0, 0, theCanvas.width, theCanvas.height);
+			context.clearRect(0, 0, 1*theCanvas.width, 1*theCanvas.height);
 
 			// Add to currently-in-progress mouse gesture if any drawing is going on ------------------
 			if (current_mgesture) {
@@ -377,7 +401,7 @@ require(
 			var sPx= time2Px(sTime);
 			while(sPx > 0){ // loop over sprocket times within score window
 				context.fillRect(sPx,0,sprocketWidth,sprocketHeight);
-				context.fillRect(sPx,theCanvas.height-sprocketHeight,sprocketWidth,sprocketHeight);
+				context.fillRect(sPx,1*theCanvas.height-sprocketHeight,sprocketWidth,sprocketHeight);
 				sPx-=pixelShiftPerMs*sprocketInterval;
 			}
 
@@ -388,7 +412,7 @@ require(
 			for (var i=1;i<numTracks;i++){
 				context.beginPath();
 				context.moveTo(0, trackY[i]);
-				context.lineTo(theCanvas.width, trackY[i]);
+				context.lineTo(1*theCanvas.width, trackY[i]);
 				context.stroke();
 			}
 
@@ -425,7 +449,7 @@ require(
 			context.lineWidth =1;
 			context.beginPath();					
 			context.moveTo(nowLinePx, 0);
-			context.lineTo(nowLinePx, theCanvas.height);
+			context.lineTo(nowLinePx, 1*theCanvas.height);
 			context.stroke();
 			context.closePath();
 
@@ -444,7 +468,7 @@ require(
 				context.lineWidth =1;
 				context.beginPath();					
 				context.moveTo(sPx, 0);
-				context.lineTo(sPx, theCanvas.height);
+				context.lineTo(sPx, 1*theCanvas.height);
 				context.stroke();
 				context.closePath();
 			}
@@ -514,6 +538,26 @@ require(
 				displayElements.push(current_mgesture);
 			} 
 
+			if (radioSelection==='text'){
+				current_mgesture=textEvent(m_tTab.currentSelection());
+				current_mgesture.d=[[t,y,z]];
+				current_mgesture.s=myID;
+
+				current_mgesture.updateMinTime();
+				current_mgesture.updateMaxTime();
+
+				current_mgesture.d.push[[t + px2Time(context.measureText(m_tTab.currentSelection()).width),y,z]]
+				console.log("text width is " + context.measureText(m_tTab.currentSelection()).width);
+				var footime = t + px2Time(context.measureText(m_tTab.currentSelection()).width);
+				console.log("text begin time is " + t + ", and end time is " + footime);
+				current_mgesture.color="#00FF00";
+
+
+				displayElements.push(current_mgesture);
+
+
+			}
+
 			if (radioSelection==='pitch'){
 				current_mgesture=pitchEvent(m_pTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
@@ -564,8 +608,8 @@ require(
 		function onMouseDown(e){
 			event.preventDefault();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
-			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+theCanvas.width*(2/3)*timeLockSlider.value;
-			console.log("x value is " + x);
+			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
+			//console.log("x value is " + x);
 
 			var y = m.y;
 
@@ -579,6 +623,18 @@ require(
 
 		function onMouseUp(e){
 			current_mgesture && endContour();
+
+			var m = utils.getCanvasMousePosition(theCanvas, e);
+
+			if (g_selectModeP === true){
+				console.log("onMouseUp: check for selected element");
+				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+					//console.log("onMouseUp: Checking desp elmt of type = " + displayElements[dispElmt].type)
+					if (displayElements[dispElmt].type === "mouseContourGesture"){
+						displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y);
+					}
+				}
+			}
 		}
 
 		function onMouseMove(e){
@@ -655,8 +711,26 @@ require(
 		radioContour.checked=true; // initialize
 		setTab("contourTab");
 
+/*
+   		window.addEventListener("keypress", keyPress, true);
 
+		function keyPress(e){
+         		var keyCode = e.keyCode;
+         		var charCode = e.charCode;
 
+         		if (current_mgesture && (current_mgesture.type==='text')){
+         			console.log("OK got keydown, = " + String.fromCharCode(e.keyCode));
+         			console.log("OK charCode, = " + charCode);
+
+         			if (charCode===13){
+         				endContour();
+         			} else{
+         				current_mgesture.addChar( String.fromCharCode(e.keyCode));
+         			}
+         		}
+       		
+        }
+*/  
 
 	}
 );

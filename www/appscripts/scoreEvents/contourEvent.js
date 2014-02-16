@@ -5,6 +5,7 @@ define(
       return function (){
 
          var kScaleMI=.15;
+         var touchMarginOfError=3;
  
          var contourEvent={
             type: "mouseContourGesture",
@@ -51,7 +52,7 @@ define(
                   // Send parameter updates on every frame, interpolating between the segment endpoints we are in
                   if (n<this.d.length-1){
                      if (this.snd && ((this.d[n][0] < now) && (this.d[n+1][0] > now))){
-                        console.log("in segment " + n);
+
                         // y0 + (x1-x0)(y-y0)/(x1-x0) for the height parameter
                         tempy=this.d[n][1] + (now-this.d[n][0])*((this.d[n+1][1] -this.d[n][1])) / (this.d[n+1][0] -this.d[n][0]);
                         this.snd.setParamNorm("Carrier Frequency", 1-tempy/ctx.canvas.height);
@@ -89,9 +90,32 @@ define(
                ctx.globalAlpha = 0.25;
                ctx.fill(); 
                ctx.globalAlpha = 1;      
-            }
-         };
-         
-   		return contourEvent;
-      }
+            },
+ 
+
+            touchedP: function(t,y){
+               //console.log("touchedP: t= " + t + ", and y = " + y);
+               //console.log("touchedP: head.t = " + this.d[0][0] + ", and head.y = " + this.d[0][1] )
+               var tempy;
+               for(var n=0;n<this.d.length;n++){
+                  if (n<this.d.length-1){
+                        if ((this.d[n][0] < t) && (this.d[n+1][0] > t)){
+                           tempy=this.d[n][1] + (t-this.d[n][0])*((this.d[n+1][1] -this.d[n][1])) / (this.d[n+1][0] -this.d[n][0]);
+                           break;
+                        }
+                     }
+               }
+               if ((tempy != undefined) && ((tempy - y) > - touchMarginOfError) && ((tempy - y) < (this.d[n][2] + touchMarginOfError))){
+                  console.log("got a touch!");
+                  return true;
+               } else{
+                  return false;
+               }
+            } // touchedP
+            
+          } // end contour event
+         return contourEvent;
+
+      };
+
 });

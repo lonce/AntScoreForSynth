@@ -87,7 +87,7 @@ define(
 
          // mapping keys so computer players can changed paramters while the play ----------------
          // (Multi-touch surfaces don't need this)
-   		window.addEventListener("keydown", keyDown, true);
+   		//window.addEventListener("keydown", keyDown, true);
    		
    		// note quite sure why this can't be: var keyDown=function(e){}
          	function keyDown(e){

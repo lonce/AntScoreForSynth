@@ -86,7 +86,7 @@ html, body
         top: 10%
         bottom: 70%; */
         float: left; 
-        overflow: visible;
+        overflow: auto;
         /* overflow-y: scroll; */
     }
 

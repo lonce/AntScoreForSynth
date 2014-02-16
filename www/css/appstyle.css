@@ -207,8 +207,7 @@ color:white;
 	bottom: 0;
 	left: 0;
 	right: 0;
-	width: 20%;
-	height:300px;
+	width: 100%;
 	vertical-align:top;
 	display: none;  // set in code to "none" or "inline-block"
 

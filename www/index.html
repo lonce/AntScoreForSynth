@@ -3,7 +3,7 @@
   <head>
      <link rel="stylesheet" type="text/css" href="css/blockstyle.css">
      <link rel="stylesheet" type="text/css" href="css/appstyle.css">      
-<!--     <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,user-scalable=no">   -->
+     <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,user-scalable=no">   
      <script type="text/javascript" data-main="appscripts/main.js" src="jslibs/require.js"></script>
 
   </head>
@@ -35,7 +35,7 @@
         	            <canvas id="score"></canvas>
         </div>
         <div id="block1c">
-                    <span id="radioSelect">
+                     <div > 
                         <div id="radioSelectDiv">
                            Input type:<br>
                            <div>
@@ -43,6 +43,12 @@
                             </div>
                             <div>
                                 <input type="radio"  name="radioSelect" id="radioContour" value="contour">Contour<br>
+                            </div>
+                            <div>
+                                <input type="radio"  name="radioSelect" id="radioText" value="text">Text<br>
+                            </div>
+                            <div>
+                                <input type="radio"  name="radioSelect" id="radioSelect" value="select">Select<br>
                             </div>
                             <div hidden>
                                 <input type="radio"  name="radioSelect" id="radioPitch" value="pitch">Pitch<br>
@@ -59,11 +65,11 @@
 
                         </div>     
 
-                    </span> 
+                    </div>  
 
 
                     <!-- These three divs alternate visibility depending on the radio button selection above -->
-                    <span hidden>
+                    <span >
                         <div class="myTabs" id="pitchTab">
                         </div>
 
@@ -81,6 +87,16 @@
                         <div class="myTabs" id="sprayTab">
                             spray tab
                         </div>
+
+                        <div class="myTabs" id="textTab">
+                        text tab
+                        </div>
+
+                        <div class="myTabs" id="selectTab">
+                        select tab
+                        </div>
+
+
 
                      </span>                      	
 
