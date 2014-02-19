@@ -21,9 +21,9 @@ require.config({
 	}
 });
 require(
-	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank", "scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent", "scoreEvents/genericScoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
+	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
 
-	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, genericScoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
+	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
 
 
 
@@ -185,6 +185,12 @@ require(
 				g_selectModeP=true;
 			} else{
 				g_selectModeP=false;
+				m_selectedElement = undefined;
+
+				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+					displayElements[dispElmt].select(false);
+				}
+
 			}	
 		}
 
@@ -228,7 +234,7 @@ require(
 			console.log("got begin mouse contour gesture from the net");
 	
 
-			current_remoteEvent[src]=contourEvent();
+			current_remoteEvent[src]=scoreEvent("mouseContourGesture");
 			current_remoteEvent[src].b=data[0][0];
 			current_remoteEvent[src].e=data[data.length-1][0];
 			current_remoteEvent[src].d=data;
@@ -246,7 +252,7 @@ require(
 			//current_remoteEvent[src]={type: 'mouseEventGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src};
 
 
-			current_remoteEvent[src]=sprayEvent();
+			current_remoteEvent[src]=scoreEvent("mouseEventGesture");
 			current_remoteEvent[src].b=data[0][0];
 			current_remoteEvent[src].e=data[data.length-1][0];
 			current_remoteEvent[src].d=data;
@@ -512,7 +518,7 @@ require(
 
 			if (radioSelection==='contour'){
 				//current_mgesture={type: 'mouseContourGesture', d: [[t,y,z]], s: myID};
-				current_mgesture=contourEvent();
+				current_mgesture=scoreEvent("mouseContourGesture");
 				current_mgesture.d=[[t,y,z]];
 				current_mgesture.s=myID;
 				current_mgesture.color="#00FF00";
@@ -528,7 +534,7 @@ require(
 
 			if (radioSelection==='spray'){
 				//current_mgesture={type: 'mouseEventGesture', d: [[t,y,z]], s: myID};
-				current_mgesture=sprayEvent();
+				current_mgesture=scoreEvent("mouseEventGesture");
 				current_mgesture.d=[[t,y,z]];
 				current_mgesture.s=myID;
 				current_mgesture.color="#00FF00";
@@ -543,7 +549,7 @@ require(
 			} 
 
 			if (radioSelection==='text'){
-				current_mgesture=textEvent(m_tTab.currentSelection());
+				current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
 				current_mgesture.d=[[t,y,z]];
 				current_mgesture.s=myID;
 
@@ -563,7 +569,7 @@ require(
 			}
 
 			if (radioSelection==='pitch'){
-				current_mgesture=pitchEvent(m_pTab.currentSelection());
+				current_mgesture=scoreEvent("pitchEvent", m_pTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
 				current_mgesture.s= myID;
 				current_mgesture.color="#00FF00";
@@ -571,7 +577,7 @@ require(
 			}
 
 			if (radioSelection==='rhythm'){
-				current_mgesture=rhythmEvent(m_rTab.currentSelection());
+				current_mgesture=scoreEvent("rhythmEvent", m_rTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
 				current_mgesture.s= myID;
 				current_mgesture.color="#00FF00";
@@ -579,7 +585,7 @@ require(
 			}
 
 			if (radioSelection==='chord'){
-				current_mgesture=chordEvent(m_cTab.currentSelection());
+				current_mgesture=scoreEvent("chordEvent", m_cTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
 				current_mgesture.s= myID;
 				current_mgesture.color="#00FF00";
@@ -593,7 +599,7 @@ require(
 			current_mgesture.b=current_mgesture.d[0][0];
 			//console.log("contour length is " + current_mgesture.d.length);
 			current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
-			console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
+			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
 			if (myRoom != '') {
 				console.log("sending event");
@@ -637,7 +643,10 @@ require(
 				if (m_selectedElement){
 					console.log("about to dubplicate elmt of type " + m_selectedElement.type);
 
-					var newG = m_selectedElement.duplicate(4000,0,genericScoreEvent());
+					var tshift = t_sinceOrigin + px2Time(m.x) - m_selectedElement.b;
+					var yshift = y-m_selectedElement.d[0][1];
+					console.log("shifting with  tshift = " + tshift + ", and yshift = " + yshift);
+					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 					console.log("Main: duplicated element");
 					displayElements.push(newG);
 

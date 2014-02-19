@@ -26,14 +26,15 @@ define(
                newEvent.head=this.head;
                newEvent.tail=this.tail;
                newEvent.font=this.font;
+               newEvent.soundbank=this.soundbank;
 
                newEvent.d=[];
                for (var n=0;n<this.d.length;n++){
                   newEvent.d.push([this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ]);
                }
-               genEvent.b=this.b+tshift;
-               genEvent.e=this.e+tshift;
-               
+               newEvent.b=this.b+tshift;
+               newEvent.e=this.e+tshift;
+
                return newEvent;
             },
 
@@ -97,6 +98,10 @@ define(
                }
 
                ctx.globalAlpha = 1;      
+            },
+
+            select: function(arg){
+               this.selectedP=arg;
             }
 
       };
