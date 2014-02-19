@@ -21,9 +21,9 @@ require.config({
 	}
 });
 require(
-	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank", "scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
+	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank", "scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent", "scoreEvents/genericScoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
 
-	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
+	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, genericScoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
 
 
 
@@ -39,6 +39,7 @@ require(
 		var current_remoteEvent=[]; // indexed by client ID
 
 		var g_selectModeP = false;
+		var m_selectedElement = undefined;
 
 		var m_lastDisplayTick=0;
 		var m_tickCount=0;
@@ -425,6 +426,9 @@ require(
 				// If its moved out of our score window, delete it from the display list
 				t_end=time2Px(displayElements[dispElmt].e);
 
+
+
+
 				if (t_end < pastLinePx) {
 					// remove event from display list
 					displayElements.splice(dispElmt,1);
@@ -546,7 +550,7 @@ require(
 				current_mgesture.updateMinTime();
 				current_mgesture.updateMaxTime();
 
-				current_mgesture.d.push[[t + px2Time(context.measureText(m_tTab.currentSelection()).width),y,z]]
+				current_mgesture.d.push([t + px2Time(context.measureText(m_tTab.currentSelection()).width),y,z]);
 				console.log("text width is " + context.measureText(m_tTab.currentSelection()).width);
 				var footime = t + px2Time(context.measureText(m_tTab.currentSelection()).width);
 				console.log("text begin time is " + t + ", and end time is " + footime);
@@ -608,33 +612,48 @@ require(
 		function onMouseDown(e){
 			event.preventDefault();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
-			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
-			//console.log("x value is " + x);
 
+
+			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
 			var y = m.y;
+
 
 			if (toggleYLockP===1){
 				yLockVal=m.y
 			}
-
-			initiateContour(x, y);
 			last_mousemove_event=e;
+
+
+			if (g_selectModeP === true){
+				console.log("onMouseDown: check for selected element");
+				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+						if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
+							console.log('MAIN: SELECTED');
+							m_selectedElement=displayElements[dispElmt];
+							console.log("just selected elmt of type " + m_selectedElement.type);
+							return; // we are done with MouseDown!
+						}
+				}
+				if (m_selectedElement){
+					console.log("about to dubplicate elmt of type " + m_selectedElement.type);
+
+					var newG = m_selectedElement.duplicate(4000,0,genericScoreEvent());
+					console.log("Main: duplicated element");
+					displayElements.push(newG);
+
+				}
+
+			} else {
+
+				initiateContour(x, y);
+			}
+
 		}
 
 		function onMouseUp(e){
 			current_mgesture && endContour();
-
 			var m = utils.getCanvasMousePosition(theCanvas, e);
 
-			if (g_selectModeP === true){
-				console.log("onMouseUp: check for selected element");
-				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
-					//console.log("onMouseUp: Checking desp elmt of type = " + displayElements[dispElmt].type)
-					if (displayElements[dispElmt].type === "mouseContourGesture"){
-						displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y);
-					}
-				}
-			}
 		}
 
 		function onMouseMove(e){

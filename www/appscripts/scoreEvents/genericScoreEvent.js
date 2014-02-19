@@ -10,13 +10,32 @@ define(
             d: null,                         // array data of [x,y] values for the gesture
             s: null,                         // a source ID (number)
             b: 999999999999999999999999999,  // begin time for this gesture
-            e: -999999999999999999999999999, // end tim for this gesture
+            e: 999999999999999999999999999, // end time for this gesture
             color: "FFFFFF",
             head: "rectangle",                // "diamond", "circle", "rectangle"
             tail: true,                      // boolean for now     
             drawID: false, 
             font: "12px Arial",     
- 
+            selectedP: false,
+
+
+            duplicate: function(tshift, yshift, newEvent){
+               newEvent.type=this.type;
+               newEvent.s=this.s;
+               newEvent.color=this.color;
+               newEvent.head=this.head;
+               newEvent.tail=this.tail;
+               newEvent.font=this.font;
+
+               newEvent.d=[];
+               for (var n=0;n<this.d.length;n++){
+                  newEvent.d.push([this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ]);
+               }
+               genEvent.b=this.b+tshift;
+               genEvent.e=this.e+tshift;
+               
+               return newEvent;
+            },
 
             updateMinTime: function(i_arg){
                if (i_arg){
@@ -39,7 +58,7 @@ define(
                return genEvent.e;
             }, 
 
-            draw: function(ctx, time2Px){
+            draw: function(ctx, time2Px, nowishP, now){
                //var dispPx=time2Px(this.d[0][0]);
                this.myDraw(ctx, time2Px(this.d[0][0])  , this.d[0][1] );
                // Display the element
@@ -52,11 +71,35 @@ define(
 
 
             // typically overridden by derivative objects
+            // Is (t,y) on top of this gesture?
+            touchedP: function(t,y){
+               return false;
+            },
+
+
+            // typically overridden by derivative objects
             myDraw: function (ctx, x, y){
+            },
+
+
+
+            drawSelected: function(ctx, time2Px){
+               var dispPx;
+
+               // Display the element
+               ctx.fillStyle = "#FFFFFF";
+               ctx.globalAlpha = 0.85;
+               for(var n=0;n<this.d.length;n++){
+                  ctx.beginPath();
+                  ctx.arc(time2Px(this.d[n][0]), this.d[n][1] ,4,0,2*Math.PI);
+                  ctx.closePath();
+                  ctx.fill();
+               }
+
+               ctx.globalAlpha = 1;      
             }
 
-         };
-         
-         return genEvent;
-      }
+      };
+      return genEvent;
+   }
 });

@@ -91,7 +91,7 @@ define(
 			myInterface.SelectRadio(0);
 
 			for(var i=0;i<radioButtonArray.length;i++){
-				console.log("assigning " + radioButtonArray[i] + " a handler")
+				//console.log("assigning " + radioButtonArray[i] + " a handler")
 				radioButtonArray[i].onclick=myInterface.handleClick;
 			};
 
