@@ -23,7 +23,7 @@ define(
                      this.snd && this.snd.setParamNorm("Carrier Frequency", 1-this.d[n][1]/ctx.canvas.height);
                      this.snd && this.snd.setParamNorm("Modulation Index", kScaleMI*(1-this.d[n][2]));
                      this.snd && this.snd.play();
-                     console.log("event playtime = " + this.d[n][0]);
+                     //console.log("event playtime = " + this.d[n][0]);
                      this.snd && this.snd.qrelease(config.minSndDuration);
                      this.snd && this.soundbank.releaseSnd(this.snd);     
                      //explosion(dispPx, this.d[n][1], 5, "#FF0000", 3, "#FFFFFF")  
@@ -42,7 +42,7 @@ define(
 
          m_scoreEvent.touchedP = function(t,y){
             for(var n=0;n<this.d.length;n++){    
-            console.log("spray touchedP:  |t|= " + Math.abs(t-this.d[n][0]) + ", and |y|= " + Math.abs(y-this.d[n][1]));
+            //console.log("spray touchedP:  |t|= " + Math.abs(t-this.d[n][0]) + ", and |y|= " + Math.abs(y-this.d[n][1]));
                if (( Math.abs(t-this.d[n][0]) < 300) && (Math.abs(y-this.d[n][1]) < config.touchMarginOfError)){
                   this.selectedP=true;
                   return true;

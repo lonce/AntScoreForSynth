@@ -66,7 +66,7 @@ define(
 
 
 			pitchTab.SelectRadio = function(pnum){
-				console.log("pnum is " + pnum + ", and k_inputElmtName = " + k_inputElmtName);
+				//console.log("pnum is " + pnum + ", and k_inputElmtName = " + k_inputElmtName);
 				var array = document.getElementsByName(k_inputElmtName); 
 				array[pnum].checked = true;
 				pitchVal=k_pitches[pnum];

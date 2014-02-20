@@ -59,7 +59,7 @@ define(
 			// Interface methods
 
 			myInterface.SelectRadio = function(pnum){
-				console.log("pnum is " + pnum + ", and k_inputElmtName = " + k_inputElmtName);
+				//console.log("pnum is " + pnum + ", and k_inputElmtName = " + k_inputElmtName);
 				radioButtonArray[pnum].checked = true;
 				m_currentSelectionIndex=pnum; 
 			}

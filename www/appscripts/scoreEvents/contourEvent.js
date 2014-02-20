@@ -110,11 +110,10 @@ define(
             }
             if ((tempy != undefined) && ((tempy - y) > - touchMarginOfError) && ((tempy - y) < (this.d[n][2] + touchMarginOfError))){
                this.selectedP=true;
-               return true;
             } else{
                this.selectedP=false;
-               return false;
             }
+            return this.selectedP;
          } // touchedP
             
 

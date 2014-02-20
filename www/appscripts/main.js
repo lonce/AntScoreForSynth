@@ -59,7 +59,7 @@ require(
 		var radioSpray = window.document.getElementById("radioSpray"); 
 		var radioContour = window.document.getElementById("radioContour");
 		var radioText = window.document.getElementById("radioText");
-		var radioSelect = window.document.getElementById("radioSelect");
+		var radioSelect = window.document.getElementById("radioSelectDuplicate");
 		var radioPitch = window.document.getElementById("radioPitch");
 		var radioRhythm = window.document.getElementById("radioRhythm");
 		var radioChord = window.document.getElementById("radioChord");
@@ -225,19 +225,15 @@ require(
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
 		comm.registerCallback('beginGesture', function(data, src) {
 			var fname;
-			console.log("got beginGesture from the net");
-	
-			console.log("received message with type = " + data.type);
 
 			current_remoteEvent[src]=scoreEvent(data.type);
 
-			console.log("fields is " + data.fields);
+			// automatically fill any fields of the new scoreEvent sent
 			for (fname in data.fields){
-				console.log("fields = " + fname + ": " + data.fields[fname]);
 				current_remoteEvent[src][fname]=data.fields[fname];
 			}
 
-
+			// These are "derived" fields, so no need to send them with the message
 			current_remoteEvent[src].b=data.d[0][0];
 			current_remoteEvent[src].e=data.d[data.d.length-1][0];
 			current_remoteEvent[src].d=data.d;
@@ -247,12 +243,11 @@ require(
 			displayElements.push(current_remoteEvent[src]);
 
 			if (data.cont && (data.cont===true)){
-				console.log("will create current remote element to fill with data sent later");
+				console.log("more data for this gesture will be expected");
 			} else {
-				console.log("received completed gesture");
+				console.log("received completed gesture, terminate the reception of data for this gesture");
 				current_remoteEvent[src]=undefined; // no more data coming
 			}
-
 		});
 
 
@@ -296,8 +291,6 @@ require(
 		});
 
 
-
-
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Client activity
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -334,6 +327,9 @@ require(
 		}
 		var px2Time=function(px){  // relative to the now line
 			return (px-nowLinePx)/pixelShiftPerMs;
+		}
+		var pxTimeSpan=function(px){  //units of ms
+			return (px/pixelShiftPerMs);
 		}
 
 		var lastDrawTime=0;
@@ -424,6 +420,7 @@ require(
 
 				if (t_end < pastLinePx) {
 					// remove event from display list
+					//console.log("deleting element at time " + displayElements[dispElmt].e);
 					displayElements.splice(dispElmt,1);
 				} else{
 
@@ -504,83 +501,57 @@ require(
 			var t = Date.now()-timeOrigin + px2Time(x);			
 
 			if (radioSelection==='contour'){
-				//current_mgesture={type: 'mouseContourGesture', d: [[t,y,z]], s: myID};
 				current_mgesture=scoreEvent("mouseContourGesture");
 				current_mgesture.d=[[t,y,z]];
-				current_mgesture.s=myID;
-				current_mgesture.color="#00FF00";
-
 				current_mgesture.soundbank=soundbank;
 
 				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true});
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
-				displayElements.push(current_mgesture);
-
 			} 
 
 			if (radioSelection==='spray'){
-				//current_mgesture={type: 'mouseEventGesture', d: [[t,y,z]], s: myID};
 				current_mgesture=scoreEvent("mouseEventGesture");
 				current_mgesture.d=[[t,y,z]];
-				current_mgesture.s=myID;
-				current_mgesture.color="#00FF00";
-
 				current_mgesture.soundbank=soundbank;
 
 				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseEventGesture", "cont": true });
 				current_mgesture_2send={type: 'mouseEventGesture', d: [], s: myID}; // do I need to add the source here??
 
 				m_lastSprayEvent  = Date.now()-timeOrigin; // now, regardless of where on the time score the event is
-				displayElements.push(current_mgesture);
 			} 
 
 			if (radioSelection==='text'){
 				current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
 				current_mgesture.d=[[t,y,z]];
-				current_mgesture.s=myID;
 
-				current_mgesture.updateMinTime();
-				current_mgesture.updateMaxTime();
+				// calculate the length of the text box on the canvas
+				current_mgesture.d.push([t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z]);
 
-				current_mgesture.d.push([t + px2Time(context.measureText(m_tTab.currentSelection()).width),y,z]);
-				console.log("text width is " + context.measureText(m_tTab.currentSelection()).width);
-				var footime = t + px2Time(context.measureText(m_tTab.currentSelection()).width);
-				console.log("text begin time is " + t + ", and end time is " + footime);
-				current_mgesture.color="#00FF00";
-
+				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
 				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
-
-
-				displayElements.push(current_mgesture);
-
-
 			}
 
 			if (radioSelection==='pitch'){
 				current_mgesture=scoreEvent("pitchEvent", m_pTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
-				current_mgesture.s= myID;
-				current_mgesture.color="#00FF00";
-				displayElements.push(current_mgesture);
 			}
 
 			if (radioSelection==='rhythm'){
 				current_mgesture=scoreEvent("rhythmEvent", m_rTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
-				current_mgesture.s= myID;
-				current_mgesture.color="#00FF00";
-				displayElements.push(current_mgesture);
 			}
 
 			if (radioSelection==='chord'){
 				current_mgesture=scoreEvent("chordEvent", m_cTab.currentSelection());
 				current_mgesture.d= [[t,y,z]];
-				current_mgesture.s= myID;
-				current_mgesture.color="#00FF00";
-				displayElements.push(current_mgesture);
 			}
 
+			current_mgesture.updateMinTime();
+			current_mgesture.updateMaxTime();
+			current_mgesture.s= myID;
+			current_mgesture.color="#00FF00";
+			displayElements.push(current_mgesture);
 		}
 
 		function endContour(){
@@ -623,24 +594,20 @@ require(
 				console.log("onMouseDown: check for selected element");
 				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 						if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
-							console.log('MAIN: SELECTED');
 							m_selectedElement=displayElements[dispElmt];
-							console.log("just selected elmt of type " + m_selectedElement.type);
 							return; // we are done with MouseDown!
 						}
 				}
 				if (m_selectedElement){
-					console.log("about to dubplicate elmt of type " + m_selectedElement.type);
-
+					//console.log("about to dubplicate elmt of type " + m_selectedElement.type);
 					var tshift = t_sinceOrigin + px2Time(m.x) - m_selectedElement.b;
 					var yshift = y-m_selectedElement.d[0][1];
-					console.log("shifting with  tshift = " + tshift + ", and yshift = " + yshift);
 					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
-					console.log("Main: duplicated element");
 
 					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false});
+					m_selectedElement.select(false);
+					newG.select(true);
 					displayElements.push(newG);
-
 				}
 
 			} else {
@@ -729,27 +696,6 @@ require(
 		// INITIALIZATIONS --------------------
 		radioContour.checked=true; // initialize
 		setTab("contourTab");
-
-/*
-   		window.addEventListener("keypress", keyPress, true);
-
-		function keyPress(e){
-         		var keyCode = e.keyCode;
-         		var charCode = e.charCode;
-
-         		if (current_mgesture && (current_mgesture.type==='text')){
-         			console.log("OK got keydown, = " + String.fromCharCode(e.keyCode));
-         			console.log("OK charCode, = " + charCode);
-
-         			if (charCode===13){
-         				endContour();
-         			} else{
-         				current_mgesture.addChar( String.fromCharCode(e.keyCode));
-         			}
-         		}
-       		
-        }
-*/  
 
 	}
 );

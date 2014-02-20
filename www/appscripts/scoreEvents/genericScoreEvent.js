@@ -10,7 +10,7 @@ define(
             d: null,                         // array data of [x,y] values for the gesture
             s: null,                         // a source ID (number)
             b: 999999999999999999999999999,  // begin time for this gesture
-            e: 999999999999999999999999999, // end time for this gesture
+            e: -999999999999999999999999999, // end time for this gesture
             color: "FFFFFF",
             head: "rectangle",                // "diamond", "circle", "rectangle"
             tail: true,                      // boolean for now     
@@ -20,12 +20,15 @@ define(
 
 
             duplicate: function(tshift, yshift, newEvent){
+
+               // it would be nice not to have to hardcode this list................
                newEvent.type=this.type;
                newEvent.s=this.s;
                newEvent.color=this.color;
                newEvent.head=this.head;
                newEvent.tail=this.tail;
                newEvent.font=this.font;
+               newEvent.text=this.text;
                newEvent.soundbank=this.soundbank;
 
                newEvent.d=[];
