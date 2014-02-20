@@ -10,7 +10,7 @@ define(
          m_scoreEvent.tail=false;
          m_scoreEvent.type='text';
 
-         m_scoreEvent.text='!' + i_arg;
+         m_scoreEvent.text= i_arg;
 
          m_scoreEvent.addChar = function (c){
             m_scoreEvent.text+=c;

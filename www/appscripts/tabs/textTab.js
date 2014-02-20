@@ -43,6 +43,27 @@ define(
 
 			thisTab.appendChild(elmt);
 
+			elmt.addEventListener("keypress", keyPress, true);
+
+			function keyPress(e){
+         		var keyCode = e.keyCode;
+         		var charCode = e.charCode;
+
+
+     			console.log("OK got keydown, = " + String.fromCharCode(e.keyCode));
+     			console.log("OK charCode, = " + charCode);
+
+     			if (charCode===13){
+     				elmt.blur();
+     			} else{
+
+     			}
+
+       		
+        }
+
+
+
 
 			//----------------------------------------------------------------
 			// Interface methods

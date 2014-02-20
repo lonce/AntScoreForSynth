@@ -215,64 +215,51 @@ require(
 
 		});
 		//---------------------------------------------------------------------------
-		// data is [timestamp (relative to "now"), x,y] of mouseGesture, and src is the id of the clicking client
-		comm.registerCallback('mouseGesture', function(data, src) {
-			console.log("got mouse contour gesture from the net");
-			//console.log("got mouseGesture event from source " + src + " ....  e: " + data[data.length-1][0]);
-			//console.log("  ...   data is " + data.prettyString());
-			//console.log("  ...   current_remoteEvent[src].d is " + current_remoteEvent[src].d.prettyString());
+		// data is [timestamp (relative to "now"), x,y] of contGesture, and src is the id of the clicking client
+		comm.registerCallback('contGesture', function(data, src) {
 			current_remoteEvent[src].d = current_remoteEvent[src].d.concat(data);
 			if (data.length === 0) console.log("Got contour event with 0 length data!");
 			current_remoteEvent[src].e=data[data.length-1][0];
-			//console.log(" ... after concatenation, oteEvent[src].d is " + current_remoteEvent[src].d.prettyString());
-
-			//---displayElements.push({type: 'mouseGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src});
 		});
 				//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
-		comm.registerCallback('beginMouseContourGesture', function(data, src) {
-			console.log("got begin mouse contour gesture from the net");
+		comm.registerCallback('beginGesture', function(data, src) {
+			var fname;
+			console.log("got beginGesture from the net");
 	
+			console.log("received message with type = " + data.type);
 
-			current_remoteEvent[src]=scoreEvent("mouseContourGesture");
-			current_remoteEvent[src].b=data[0][0];
-			current_remoteEvent[src].e=data[data.length-1][0];
-			current_remoteEvent[src].d=data;
+			current_remoteEvent[src]=scoreEvent(data.type);
+
+			console.log("fields is " + data.fields);
+			for (fname in data.fields){
+				console.log("fields = " + fname + ": " + data.fields[fname]);
+				current_remoteEvent[src][fname]=data.fields[fname];
+			}
+
+
+			current_remoteEvent[src].b=data.d[0][0];
+			current_remoteEvent[src].e=data.d[data.d.length-1][0];
+			current_remoteEvent[src].d=data.d;
 			current_remoteEvent[src].s=src;
 			current_remoteEvent[src].soundbank=soundbank;
 
-
-			//console.log("beginMouseContourGesture from the from source " + src + " ....  b:" + data[0][0] + ", e: " + current_remoteEvent[src].e );
 			displayElements.push(current_remoteEvent[src]);
-			//displayElements.push({type: 'mouseContourGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src});
+
+			if (data.cont && (data.cont===true)){
+				console.log("will create current remote element to fill with data sent later");
+			} else {
+				console.log("received completed gesture");
+				current_remoteEvent[src]=undefined; // no more data coming
+			}
+
 		});
+
 
 		//---------------------------------------------------------------------------
-		comm.registerCallback('beginMouseEventGesture', function(data, src) {
-			//current_remoteEvent[src]={type: 'mouseEventGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src};
-
-
-			current_remoteEvent[src]=scoreEvent("mouseEventGesture");
-			current_remoteEvent[src].b=data[0][0];
-			current_remoteEvent[src].e=data[data.length-1][0];
-			current_remoteEvent[src].d=data;
-			current_remoteEvent[src].s=src;
-
-			current_remoteEvent[src].soundbank=soundbank;
-
-
-
-			//console.log("beginMouseContourGesture from the from source " + src + " ....  b:" + data[0][0] + ", e: " + current_remoteEvent[src].e );
-			displayElements.push(current_remoteEvent[src]);
-			//displayElements.push({type: 'mouseContourGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src});
-		});
-
-				//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
-		comm.registerCallback('endMouseGesture', function(data, src) {
-			//console.log("endMouseGesture from the from source " + src + " ....");
+		comm.registerCallback('endGesture', function(data, src) {
 			current_remoteEvent[src]=undefined; // no more data coming
-			//displayElements.push({type: 'mouseContourGesture', b: data[0][0], e: data[data.length-1][0], d: data, s: src});
 		});
 
 		//---------------------------------------------------------------------------
@@ -525,7 +512,7 @@ require(
 
 				current_mgesture.soundbank=soundbank;
 
-				comm.sendJSONmsg("beginMouseContourGesture", [[t,y,z]]);
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true});
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
 				displayElements.push(current_mgesture);
@@ -541,7 +528,7 @@ require(
 
 				current_mgesture.soundbank=soundbank;
 
-				comm.sendJSONmsg("beginMouseEventGesture", [[t,y,z]]);
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseEventGesture", "cont": true });
 				current_mgesture_2send={type: 'mouseEventGesture', d: [], s: myID}; // do I need to add the source here??
 
 				m_lastSprayEvent  = Date.now()-timeOrigin; // now, regardless of where on the time score the event is
@@ -561,6 +548,8 @@ require(
 				var footime = t + px2Time(context.measureText(m_tTab.currentSelection()).width);
 				console.log("text begin time is " + t + ", and end time is " + footime);
 				current_mgesture.color="#00FF00";
+
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
 
 
 				displayElements.push(current_mgesture);
@@ -605,9 +594,9 @@ require(
 				console.log("sending event");
 				if (current_mgesture_2send){
 					if (current_mgesture_2send.d.length > 0){
-						comm.sendJSONmsg("mouseGesture", current_mgesture_2send.d);
+						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
 					}
-					comm.sendJSONmsg("endMouseGesture", []);
+					comm.sendJSONmsg("endGesture", []);
 				}	
 			}
 			current_mgesture=undefined;
@@ -648,6 +637,8 @@ require(
 					console.log("shifting with  tshift = " + tshift + ", and yshift = " + yshift);
 					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 					console.log("Main: duplicated element");
+
+					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false});
 					displayElements.push(newG);
 
 				}
@@ -695,7 +686,7 @@ require(
 				if (myRoom != '') {
 					//console.log("sending event");
 					if (current_mgesture_2send.d.length > 0)
-						comm.sendJSONmsg("mouseGesture", current_mgesture_2send.d);
+						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
 				}
 				current_mgesture_2send.d=[];
  				lastSendTimeforCurrentEvent=t_sinceOrigin;
