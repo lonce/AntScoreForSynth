@@ -101,7 +101,16 @@ define(
                this.selectedP=false;
             }
             return  this.selectedP; 
-         } // touchedP
+         }; // touchedP
+
+         m_scoreEvent.getKeyFields= function(arg){
+               return {
+                  "text": m_scoreEvent.text
+               }
+            }
+
+
+
 
          return m_scoreEvent;
       }

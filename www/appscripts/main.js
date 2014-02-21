@@ -529,7 +529,9 @@ require(
 				current_mgesture.d.push([t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z]);
 
 				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
+				//comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": current_mgesture.getKeyFields() });
+
 			}
 
 			if (radioSelection==='pitch'){
@@ -604,7 +606,8 @@ require(
 					var yshift = y-m_selectedElement.d[0][1];
 					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 
-					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false});
+
+					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
 					m_selectedElement.select(false);
 					newG.select(true);
 					displayElements.push(newG);

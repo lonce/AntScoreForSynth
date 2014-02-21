@@ -105,6 +105,11 @@ define(
 
             select: function(arg){
                this.selectedP=arg;
+            },
+
+            // override this method to provide fields not shared with other Events
+            getKeyFields: function(){
+               return {};
             }
 
       };
