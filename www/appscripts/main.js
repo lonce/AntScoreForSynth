@@ -370,6 +370,7 @@ require(
 						current_mgesture.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 					}
+					current_mgesture.updateMaxTime();
 				} 
 				if (current_mgesture &&  current_mgesture.type === 'mouseEventGesture'){
 					if (elapsedtime > (m_lastSprayEvent+k_sprayPeriod)){
@@ -377,7 +378,9 @@ require(
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);						
 						m_lastSprayEvent  = Date.now()-timeOrigin;
 					}
-					// drawn contours must only go up in time
+					current_mgesture.updateMaxTime();
+					current_mgesture.updateMinTime();
+
 				} 
 				if (current_mgesture &&  current_mgesture.type === 'pitchEvent'){
 					// pitch events do not extend in time...
