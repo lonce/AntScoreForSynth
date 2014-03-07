@@ -85,6 +85,10 @@ define(
             myDraw: function (ctx, x, y){
             },
 
+            stopSound: function(){
+               this.snd && this.snd.release();
+               this.snd && this.soundbank.releaseSnd(this.snd);
+            },
 
 
             drawSelected: function(ctx, time2Px){
@@ -95,7 +99,7 @@ define(
                ctx.globalAlpha = 0.85;
                for(var n=0;n<this.d.length;n++){
                   ctx.beginPath();
-                  ctx.arc(time2Px(this.d[n][0]), this.d[n][1] ,4,0,2*Math.PI);
+                  ctx.arc(time2Px(this.d[n][0]), this.d[n][1] ,2,0,2*Math.PI);
                   ctx.closePath();
                   ctx.fill();
                }

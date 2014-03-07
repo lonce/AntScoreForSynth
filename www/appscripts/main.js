@@ -21,10 +21,27 @@ require.config({
 	}
 });
 require(
-	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "config"],
+	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "agentPlayer", "config", "userConfig"],
 
-	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, config) {
+	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, agentPlayer, config, userConfig) {
 
+		var m_agent;
+		userConfig.report(function(){
+			if (userConfig.player === "agent"){
+				console.log("you will play with (or as) an agent");
+				m_agent=agentPlayer();
+			}
+
+			// unsubscribe to previous room, join new room
+			if (myRoom != undefined) comm.sendJSONmsg("unsubscribe", [myRoom]);
+    		myRoom  = userConfig.room;
+			if (myRoom != undefined) {
+				console.log("userConfig.report: joing a room named " + myRoom); 
+				comm.sendJSONmsg("subscribe", [myRoom]);
+				// Tell everybody in the room to restart their timers.
+				comm.sendJSONmsg("startTime", []);
+			} 
+		});
 
 
         var myrequestAnimationFrame = utils.getRequestAnimationFrameFunc();
@@ -33,7 +50,7 @@ require(
 		var serverTimeOrigin=0;
 		var serverTime=0;
 		var myID=0;
-		var myRoom='';
+		var myRoom=undefined;
 		var displayElements = [];  // list of all items to be displayed on the score
 		var colorIDMap=[]; // indexed by client ID
 		var current_remoteEvent=[]; // indexed by client ID
@@ -266,6 +283,10 @@ require(
 		//---------------------------------------------------------------------------
 		comm.registerCallback('startTime', function(data) {
 			console.log("server startTime = " + data[0] );
+
+			clearScore();
+			m_agent && m_agent.reset();
+			
 			timeOrigin=Date.now();
 			lastSendTimeforCurrentEvent= -Math.random()*sendCurrentEventInterval; // so time-synched clients don't all send their countour chunks at the same time. 
 			serverTimeOrigin=data[0];
@@ -511,6 +532,7 @@ require(
 				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true});
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
+				console.log("starting gesture at " + t + ", " + y + ", " + z);
 			} 
 
 			if (radioSelection==='spray'){
@@ -559,6 +581,15 @@ require(
 			displayElements.push(current_mgesture);
 		}
 
+		function clearScore(){
+			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+				displayElements[dispElmt].stopSound();
+			}
+			current_mgesture=undefined;
+			current_mgesture_2send=undefined;
+		}
+
+
 		function endContour(){
 			//console.log("current event is " + current_mgesture + " and the data length is " + current_mgesture.d.length);
 			current_mgesture.b=current_mgesture.d[0][0];
@@ -566,7 +597,7 @@ require(
 			current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
 			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
-			if (myRoom != '') {
+			if (myRoom != undefined) {
 				console.log("sending event");
 				if (current_mgesture_2send){
 					if (current_mgesture_2send.d.length > 0){
@@ -644,11 +675,18 @@ require(
 			
 			drawScreen(t_sinceOrigin);
 
+			m_agent && m_agent.tick(t_sinceOrigin, displayElements);
+
 			// create a display clock tick every 1000 ms
 			while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
 				m_tickCount++;
 				k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
 				m_lastDisplayTick += 1000;
+
+				//console.log("displayElements length is " + displayElements.length)
+				if (displayElements.length >2){
+					var foo = 4;
+				}
 			}
 
 			//-----------  if an event is in the middle of being drawn, send it every sendCurrentEventInterval
@@ -656,7 +694,7 @@ require(
 			//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
 			if ((current_mgesture_2send!=undefined) && ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval)){
 				//console.log("tick " + t_sinceOrigin);
-				if (myRoom != '') {
+				if (myRoom != undefined) {
 					//console.log("sending event");
 					if (current_mgesture_2send.d.length > 0)
 						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
@@ -674,31 +712,25 @@ require(
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// callback from html
-		//var roomselect = app.querySelector('#roomList');
+/*
 		var roomselect = document.getElementById('roomList');
-		//console.log("roomselect = " + roomselect);
-
-		var favBrowser = function(){
-			var mylist=document.getElementById("myList");
-			//document.getElementById("current_room").value=mylist.options[mylist.selectedIndex].text;
-		}
 
 		roomselect.addEventListener('change', function(e) {
 
-			if (myRoom != '') comm.sendJSONmsg("unsubscribe", [myRoom]);
+			if (myRoom != undefined) comm.sendJSONmsg("unsubscribe", [myRoom]);
 
         	myRoom  = e.currentTarget.value;
         	//document.getElementById("current_room").value=mylist.options[mylist.selectedIndex].text;
         	//document.getElementById("current_room").value=myRoom;
 
-			if (myRoom != '') {
+			if (myRoom != undefined) {
         		// just choose a default room (rather than getting a list from the server and choosing)
 				comm.sendJSONmsg("subscribe", [myRoom]);
 				// Tell everybody in the room to restart their timers.
 				comm.sendJSONmsg("startTime", []);
 			} 
    		 })
-
+*/
 		// INITIALIZATIONS --------------------
 		radioContour.checked=true; // initialize
 		setTab("contourTab");
