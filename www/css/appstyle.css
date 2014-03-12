@@ -38,7 +38,7 @@ input[name=pradio]:checked + label {
 	font-weight: "900";
    background-image: none;
     
-    //background-color:#d0d0d0;
+
     background-color: #00BB00;
 }
 td
@@ -72,10 +72,10 @@ input[name=rradio] + label {
 */
 input[name=rradio]:checked + label { 
 	color: black;
-	fontWeight="900";
+	font-weight:"900";
    background-image: none;
     
-    //background-color:#d0d0d0;
+
     background-color: #00BB00;
 }
 td
@@ -109,10 +109,10 @@ input[name=cradio] + label {
 */
 input[name=cradio]:checked + label { 
 	color: black;
-	fontWeight="900";
+	font-weight:"900";
    background-image: none;
     
-    //background-color:#d0d0d0;
+
     background-color: #00BB00;
 }
 td
@@ -140,14 +140,13 @@ color:white;
 	width: 88%;
 	text-align: center	
 }
-//-----------------------------------------------------------------
+
 #app{
 	width: 100%;
 	overflow: hidden;
 
 }
-/* http://jsfiddle.net/ArondeParon/SPjsf/15/ */
-/* http://css-infos.net/property/-webkit-appearance */
+
 #slider_area {
 	-webkit-user-select: none;
 	color:blue;
@@ -167,7 +166,6 @@ color:white;
     border:1px solid #0000FF;
     overflow: hidden; 
 
-    //float:left;
 }
 
 .scoreSpan{
@@ -197,7 +195,7 @@ color:white;
 	vertical-align:top;
 	display: inline-block;  
 	border:1px solid #0000FF;
-	//float:right;
+
 }
 
 
@@ -210,8 +208,8 @@ color:white;
 	right: 0;
 	width: 99%;
 	vertical-align:top;
-	display: none;  // set in code to "none" or "inline-block"
-	//float:right;
+	display: none;  
+
 
 }
 #control_section{
