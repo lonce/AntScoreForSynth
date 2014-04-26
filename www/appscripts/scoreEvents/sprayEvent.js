@@ -6,6 +6,9 @@ define(
          var m_scoreEvent=genericScoreEvent("mouseEventGesture");
 
          var kScaleMI=.15;
+         
+         var soundName;// name of sound this event will play
+         var param1, param2; // the string names of the parameters of the sound associated with this event
 
           m_scoreEvent.draw = function(ctx, time2Px, nowishP){
 
@@ -19,9 +22,9 @@ define(
                   dispPx=time2Px(this.d[n][0]);  
 
                   if (nowishP(this.d[n][0])){
-                     this.snd=this.soundbank.getSnd();
-                     this.snd && this.snd.setParamNorm("Carrier Frequency", 1-this.d[n][1]/ctx.canvas.height);
-                     this.snd && this.snd.setParamNorm("Modulation Index", kScaleMI*(1-this.d[n][2]));
+                     this.snd=this.soundbank.getSnd(this.soundName);
+                     this.snd && this.snd.setParamNorm(this.param1, 1-this.d[n][1]/ctx.canvas.height);
+                     this.snd && this.snd.setParamNorm(this.param2, kScaleMI*(1-this.d[n][2]/config.maxContourWidth));
                      this.snd && this.snd.play();
                      //console.log("event playtime = " + this.d[n][0]);
                      this.snd && this.snd.qrelease(config.minSndDuration);
@@ -51,6 +54,14 @@ define(
             this.selectedP=false;
             return false;
          };
+
+         m_scoreEvent.getKeyFields= function(arg){
+            return {
+               "soundName": m_scoreEvent.soundName,
+               "param1": m_scoreEvent.param1,
+               "param2": m_scoreEvent.param2
+            }
+         }
 
          return m_scoreEvent;
       }

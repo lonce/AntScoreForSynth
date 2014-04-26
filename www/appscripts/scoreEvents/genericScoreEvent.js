@@ -31,6 +31,10 @@ define(
                newEvent.text=this.text;
                newEvent.soundbank=this.soundbank;
 
+               if (this.soundName) newEvent.soundName=this.soundName;
+               if (this.param1) newEvent.param1=this.param1;
+               if (this.param2) newEvent.param2=this.param2;
+
                newEvent.d=[];
                for (var n=0;n<this.d.length;n++){
                   newEvent.d.push([this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ]);

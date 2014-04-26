@@ -37,8 +37,6 @@ define(
 			elmt.setAttribute("value", "foo");
 			elmt.setAttribute("id", "myTextInput");////////////////////////////////
 			//elmt.setAttribute("style", "position: absolute;    left: " + window.innerWidth/2 + "; top: " + window.innerHeight/2 + "; width: " + window.innerWidth/2 + "; height: " + window.innerHeight/2);
-
-			document.getElementById("block3b").appendChild(elmt);
 			elmt.focus();
 
 			thisTab.appendChild(elmt);

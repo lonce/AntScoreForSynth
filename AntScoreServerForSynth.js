@@ -26,6 +26,7 @@ registerCallback('contGesture', contGesture);
 registerCallback('beginGesture', beginGesture);
 registerCallback('endGesture', endGesture);
 registerCallback('startTime', startTime);
+registerCallback('addToSoundbank', addToSoundbank);
 
 // Note: for all functions used as callbacks, "this" will be a socket passed to the .call()
 function subscribe(rm) {
@@ -82,6 +83,10 @@ function startTime() {
     roomBroadcast(this.room, 0, 'startTime', [JStime]); // 0 sender sends to all members in a room
 }
 
+// basic data exchange method for responding to one socket, sending to rest
+function addToSoundbank(data) {
+    roomBroadcast(this.room, this, 'addToSoundbank', data);
+}
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function roomBroadcast(room, sender, name, data) {

@@ -59,35 +59,28 @@ html, body
 
         width: 3%;
         height: 100%; 
-        /*position: absolute;
-        top: 10%
-        bottom: 70%; */
 
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll;*/
+
     }
 #block1b {
         background-color: black;
         width: 77%;
         height: 100%; 
-        /* position: absolute;
-        top: 10%
-        bottom: 70%; */
+
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll; */
+
     }
 #block1c {
         background-color: #4B0082;
         width: 20%;
         height: 100%; 
-        /* position: absolute;
-        top: 10%
-        bottom: 70%; */
+
         float: left; 
         overflow: auto;
-        /* overflow-y: scroll; */
+
     }
 
 
@@ -95,64 +88,45 @@ html, body
 #block3 {
     background-color: green;
     width: 100%;
-    height: 100%;
+    height: 15%;
     max-height: 15%;
     overflow: visible;
-    /*background: blue;*/
 }
 
 #block3a {
         background-color: black;
         width: 3%;
         height: 100%; 
-        /*position: absolute;
-        top: 10%
-        bottom: 70%; */
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll;*/
     }
 #block3b {
         background-color: black;
         width: 25%;
         height: 100%; 
-        /* position: absolute;
-        top: 10%
-        bottom: 70%; */
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll; */
     }
 #block3c {
         background-color: black;
         width: 52%;
         height: 100%; 
-        /* position: absolute;
-        top: 10%
-        bottom: 70%; */
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll; */
     }
 #block3d {
         background-color: black;
         width: 20%;
         height: 100%; 
-        /* position: absolute;
-        top: 10%
-        bottom: 70%; */
         float: left; 
         overflow: visible;
-        /* overflow-y: scroll; */
     }
 
-
-/* .clear { clear: both; } */
 
 #footer{
     background-color:black;
     height: 10%;
- /*   clear:both; */
+
     font-family:Calibri ; font-size:10px;
-    /*text-align:center;*/
+
 }

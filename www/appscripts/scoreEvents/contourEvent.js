@@ -7,6 +7,9 @@ define(
          var kScaleMI=.15;
          var touchMarginOfError=3;
 
+         var soundName;// name of sound this event will play
+         var param1, param2; // the string names of the parameters of the sound associated with this event
+
          var m_scoreEvent=genericScoreEvent("mouseContourGesture");
  
 
@@ -64,7 +67,7 @@ define(
 
             if (nowishP(this.d[0][0])){
                //console.log("contour start, get a new snd")
-               this.snd=this.soundbank.getSnd();
+               this.snd=this.soundbank.getSnd(this.soundName);
                this.snd && this.snd.play();
             } 
 
@@ -73,13 +76,20 @@ define(
                if (n<this.d.length-1){
                   if (this.snd && ((this.d[n][0] < now) && (this.d[n+1][0] > now))){
 
-                     // y0 + (x1-x0)(y-y0)/(x1-x0) for the height parameter
-                     tempy=this.d[n][1] + (now-this.d[n][0])*((this.d[n+1][1] -this.d[n][1])) / (this.d[n+1][0] -this.d[n][0]);
-                     this.snd.setParamNorm("Carrier Frequency", 1-tempy/ctx.canvas.height);
+                     if (this.param1 != "not used") {
+                        // y0 + (x1-x0)(y-y0)/(x1-x0) for the height parameter
+                        tempy=this.d[n][1] + (now-this.d[n][0])*((this.d[n+1][1] -this.d[n][1])) / (this.d[n+1][0] -this.d[n][0]);
+                        this.snd.setParamNorm(this.param1, 1-tempy/ctx.canvas.height);
+                     }
 
-                     // y0 + (x1-x0)(y-y0)/(x1-x0) for the slider val parameter 
-                     tempy=this.d[n][2] + (now-this.d[n][0])*((this.d[n+1][2] -this.d[n][2])) / (this.d[n+1][0] -this.d[n][0]);
-                     this.snd.setParamNorm("Modulation Index", kScaleMI*(1-tempy));
+                     if (this.param2 != "not used") {
+                        // y0 + (x1-x0)(y-y0)/(x1-x0) for the slider val parameter 
+                          tempy=this.d[n][2] + (now-this.d[n][0])*((this.d[n+1][2] -this.d[n][2])) / (this.d[n+1][0] -this.d[n][0]);
+
+                        //this.snd.setParamNorm(this.param2, kScaleMI*(1-tempy/config.maxContourWidth));
+                        //console.log("set param norm " + tempy/config.maxContourWidth);
+                        this.snd.setParamNorm(this.param2, tempy/config.maxContourWidth);
+                     } 
                   }
                }
             }
@@ -116,6 +126,15 @@ define(
             return this.selectedP;
          } // touchedP
             
+
+         m_scoreEvent.getKeyFields= function(arg){
+            return {
+               "soundName": m_scoreEvent.soundName,
+               "param1": m_scoreEvent.param1,
+               "param2": m_scoreEvent.param2
+            }
+         }
+
 
          return m_scoreEvent;
 

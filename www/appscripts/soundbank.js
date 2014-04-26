@@ -5,37 +5,51 @@
 	in calls to the ScriptAudioNode generate audio functions!!!
 */
 define(
-	["config", "require", "jsaSound/jsaModels/jsaFMnative"],
-	function (config, require, sndFactory) {
+	["config"],
+	function (config) {
 
 
 	var soundbank = {};
 	var m_maxPolyphony;
 
-	var m_nextsnd=0;
+        var m_polyNum=[]; // indexed by sound name:  number = m_polyNum[sname]
+        var snds=[];      // indexed by sound name   m_snds[sname][voice_num]
 
-        var snds=[];
-
-        soundbank.create = function(poly){
+        soundbank.addSnd = function(sname, sndFactory, poly){
         	m_maxPolyphony=poly;
+                if (snds[sname]){
+                        console.log(" The sound " + sname + " was already loaded, so no need to do it again");
+                        return;
+                }
+                //else
+                snds[sname]=[];
         	for(var i=0;i<poly;i++){
-        		snds[i]=sndFactory();
-        		snds[i].available=true;
+        		snds[sname][i]=sndFactory();
+        		snds[sname][i].available=true;
         	}
+                m_polyNum[sname]=0;
         }
 
-        soundbank.getSnd = function(){
-			var i=0;
+        soundbank.getSnd = function(sname){
+		var i=0;
+                polylist=snds[sname];
+                nextSndNum=m_polyNum[sname];
+
+                console.log("soundbank.getSnd: sname = " + sname + ", and nextSndNum = " + nextSndNum);
+
         	while(i<m_maxPolyphony) {
-        		m_nextsnd=(m_nextsnd+1)%m_maxPolyphony;
-        		//console.log("snds["+m_nextsnd+"] = " + snds[m_nextsnd]);
-        		if (snds[m_nextsnd].available){
-        			snds[m_nextsnd].available=false;
-        			return snds[m_nextsnd];
+        		nextSndNum=(nextSndNum+1)%m_maxPolyphony;
+        		//console.log("snds["+m_polyNum+"] = " + snds[m_polyNum]);
+        		if (polylist[nextSndNum].available){
+        			polylist[nextSndNum].available=false;
+                                m_polyNum[sname]=nextSndNum;
+        			return polylist[nextSndNum];
         		} else{
         			i=i+1;
         		}
         	}
+
+                
         	console.log("No sounds currently available - reached maximum polyphony");
         	return undefined;
         }

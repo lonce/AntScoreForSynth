@@ -21,9 +21,9 @@ require.config({
 	}
 });
 require(
-	["require", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "agentPlayer", "config", "userConfig"],
+	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "agentPlayer", "config", "userConfig"],
 
-	function (require, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, agentPlayer, config, userConfig) {
+	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, agentPlayer, config, userConfig) {
 
 		var m_agent;
 		userConfig.report(function(){
@@ -55,7 +55,7 @@ require(
 		var colorIDMap=[]; // indexed by client ID
 		var current_remoteEvent=[]; // indexed by client ID
 
-		var g_selectModeP = false;
+		var m_currentTab = false;
 		var m_selectedElement = undefined;
 
 		var m_lastDisplayTick=0;
@@ -71,6 +71,7 @@ require(
 
 		var k_minLineThickness=1;
 		var k_maxLineThickness=16; // actually, max will be k_minLineThickness + k_maxLineThickness
+		config.maxContourWidth = 17;
 
 		var leftSlider = canvasSlider(window,"slidercanvas1");
 		var radioSpray = window.document.getElementById("radioSpray"); 
@@ -116,17 +117,26 @@ require(
 		var toggleSoundState=1;
 		toggleSoundButton.style.background='#005900';
 
-
-
-		//initialize sound band
-		if(config.webketAudioEnabled){
-				soundbank.create(toggleSoundState*12); // max polyphony 
+		//-----------------------------------------------------------------------------
+		//var newSoundSelector = window.document.getElementById("newSoundSelector")
+		soundSelect.setCallback("newSoundSelector", newSoundHandler);
+		function newSoundHandler(currentSMFactory) {
+			var model = soundSelect.getModelName();
+			if (! model) return;
+			console.log("newSoundHandler: soundModeName is " + model);
+			if(config.webkitAudioEnabled){
+					soundbank.addSnd(model, currentSMFactory, toggleSoundState*12); // max polyphony 
+			}
+			comm.sendJSONmsg('addToSoundbank', [model]);
 		}
+
+		//-----------------------------------------------------------------------------
+
 
 		toggleSoundButton.onclick=function(){
 			toggleSoundState=(toggleSoundState+1)%2;
-			if(config.webketAudioEnabled){
-				soundbank.create(toggleSoundState*12); // max polyphony 
+			if(config.webkitAudioEnabled){
+				soundbank.addSnd(toggleSoundState*12); // max polyphony 
 			}
 			if (toggleSoundState===0){
 				toggleSoundButton.style.background='#590000';
@@ -147,8 +157,8 @@ require(
          				if (e.ctrlKey==1){
          					//alert("control s was pressed");
          					e.preventDefault();
-         					if(config.webketAudioEnabled){
-								soundbank.create(12); // max polyphony 
+         					if(config.webkitAudioEnabled){
+								soundbank.addSnd(12); // max polyphony 
 							}
 							
          				}
@@ -198,16 +208,13 @@ require(
 			window.document.getElementById("selectTab").style.display="none";
 
 			window.document.getElementById(showTab).style.display="inline-block";
-			if (showTab === "selectTab"){
-				g_selectModeP=true;
-			} else{
-				g_selectModeP=false;
+			m_currentTab=showTab;
+			if (showTab != "selectTab"){
 				m_selectedElement = undefined;
-
+				// unselect everybody
 				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 					displayElements[dispElmt].select(false);
 				}
-
 			}	
 		}
 
@@ -255,7 +262,9 @@ require(
 			current_remoteEvent[src].e=data.d[data.d.length-1][0];
 			current_remoteEvent[src].d=data.d;
 			current_remoteEvent[src].s=src;
+
 			current_remoteEvent[src].soundbank=soundbank;
+
 
 			displayElements.push(current_remoteEvent[src]);
 
@@ -312,6 +321,15 @@ require(
 		});
 
 
+		comm.registerCallback('addToSoundbank', function(data, src) {
+			console.log("add to soundbank for remote client " + data[0]);
+			soundSelect.loadSound(data[0],function(sfactory){
+				console.log("loaded sound for remote client")
+				soundbank.addSnd(data[0], sfactory, toggleSoundState*12); // max polyphony 
+			});
+
+		});
+
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Client activity
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -321,7 +339,7 @@ require(
 		var mouseY;
 		context.font="9px Arial";
 
-		var scoreWindowTimeLength=20000; //ms
+		var scoreWindowTimeLength=40000; //ms
 		var pixelShiftPerMs=1*theCanvas.width/(scoreWindowTimeLength);
 		var pxPerSec=pixelShiftPerMs*1000;
 		var nowLinePx=1*theCanvas.width/3;
@@ -528,8 +546,12 @@ require(
 				current_mgesture=scoreEvent("mouseContourGesture");
 				current_mgesture.d=[[t,y,z]];
 				current_mgesture.soundbank=soundbank;
+				current_mgesture.soundName = soundSelect.getModelName();
+				current_mgesture.param1=soundSelect.getSelectedParamName(1);
+				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true});
+
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true, "fields": current_mgesture.getKeyFields()  });
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
 				console.log("starting gesture at " + t + ", " + y + ", " + z);
@@ -539,8 +561,12 @@ require(
 				current_mgesture=scoreEvent("mouseEventGesture");
 				current_mgesture.d=[[t,y,z]];
 				current_mgesture.soundbank=soundbank;
+				current_mgesture.soundName = soundSelect.getModelName();
+				current_mgesture.param1=soundSelect.getSelectedParamName(1);
+				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseEventGesture", "cont": true });
+
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseEventGesture", "cont": true, "fields": current_mgesture.getKeyFields() });
 				current_mgesture_2send={type: 'mouseEventGesture', d: [], s: myID}; // do I need to add the source here??
 
 				m_lastSprayEvent  = Date.now()-timeOrigin; // now, regardless of where on the time score the event is
@@ -626,7 +652,14 @@ require(
 			last_mousemove_event=e;
 
 
-			if (g_selectModeP === true){
+			if ((m_currentTab === "sprayTab") || (m_currentTab === "contourTab")) {
+				if (soundSelect.getModelName()===undefined){
+					return;
+				}
+			}
+
+
+			if (m_currentTab === "selectTab"){
 				console.log("onMouseDown: check for selected element");
 				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 						if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
@@ -640,6 +673,12 @@ require(
 					var yshift = y-m_selectedElement.d[0][1];
 					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 
+					if (document.getElementById("radio_copyNewSound").checked === true){
+			               newG.soundName=soundSelect.getModelName();
+			               newG.param1=soundSelect.getSelectedParamName(1);
+			               newG.param2=soundSelect.getSelectedParamName(2);
+					}
+					
 
 					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
 					m_selectedElement.select(false);
@@ -731,6 +770,8 @@ require(
 			} 
    		 })
 */
+
+
 		// INITIALIZATIONS --------------------
 		radioContour.checked=true; // initialize
 		setTab("contourTab");

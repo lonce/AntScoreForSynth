@@ -20,20 +20,23 @@ define(
 			var thisTab=document.getElementById(docDiv);
 			var tableElmt = document.createElement("div");
 
-/*
-			var elmt = document.createElement("input");
 
-			elmt.setAttribute("type", "text");
-			//elmt.setAttribute("background", "white");
-			elmt.setAttribute("value", "foo");
-			elmt.setAttribute("id", "myTextInput");////////////////////////////////
-			//elmt.setAttribute("style", "position: absolute;    left: " + window.innerWidth/2 + "; top: " + window.innerHeight/2 + "; width: " + window.innerWidth/2 + "; height: " + window.innerHeight/2);
+			var elmt1 = document.createElement("input");
 
-			document.getElementById("block3b").appendChild(elmt);
-			elmt.focus();
+			elmt1.setAttribute("type", "radio");
+			elmt1.setAttribute("name", "copymode");
+			elmt1.setAttribute("id", "radio_copyOrigSound");
+			elmt1.setAttribute("checked", true);
+			thisTab.appendChild(elmt1);
+			thisTab.appendChild(document.createTextNode("original sound  "));
 
-			thisTab.appendChild(elmt);
+			var elmt2 = document.createElement("input");
 
+			elmt2.setAttribute("type", "radio");
+			elmt2.setAttribute("name", "copymode");
+			elmt2.setAttribute("id", "radio_copyNewSound");
+			thisTab.appendChild(elmt2);
+			thisTab.appendChild(document.createTextNode("current sound"));
 
 			//----------------------------------------------------------------
 			// Interface methods
@@ -41,7 +44,7 @@ define(
 			myInterface.currentSelection = function(){
 				return elmt.value ;
 			};
-*/
+
 
 			return myInterface;
 		}

@@ -38,7 +38,9 @@
         <div id="block1c">
                      <div > 
                         <div id="radioSelectDiv">
-                           Input type:<br>
+                          <div align="center">
+                            Input Mode:
+                          </div>
                            <div class="radioSelect">
                                 <input type="radio"  name="radioSelect" id="radioSpray" value="spray">Event Spray<br>
                             </div>
@@ -70,7 +72,12 @@
 
 
                     <!-- These three divs alternate visibility depending on the radio button selection above -->
-                    <span >
+                    <div id="tabDiv">
+                          <div align="center">
+                            Options:
+                          </div>
+
+
                         <div class="myTabs" id="pitchTab">
                         </div>
 
@@ -97,9 +104,8 @@
                         
                         </div>
 
+                     </div>     
 
-
-                     </span>                      	
 
         </div>
         <div class="clear"></div>
@@ -127,15 +133,14 @@
         </div>
 
         <div id="block3d">
-         <!--        	
-        	<div id="control_section">
-                Join a room:
-                <select id="roomList">
-                    <option></option>
-                    <option>defaultRoom</option>
-                </select>
-            </div>display 
-            -->
+           <div id="soundDiv"> Current Sound
+               <select id="newSoundSelector">
+               </select><br>
+               p1 <select id="param1Selector">
+               </select><br>
+               p2 <select id="param2Selector">
+               </select>
+          </div>                
 
         </div>
     </div>
