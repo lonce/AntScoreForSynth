@@ -3,13 +3,19 @@ Just include this file in a require module, no need to call anything.
 */
 
 define(
-  [],
-  function(){
+  ["jsaSound/jsaModels/jsaMp3"],
+  function(sndFactory){
 
     var uconfig = {
       "player": undefined,
       "room": undefined
     };
+
+    // This is a click sound which get the iOs sound flowing
+    var okSound=sndFactory();
+    okSound.setParam("Sound URL", "resources/click.mp3");
+    okSound.setParam("Gain", 1);
+
 
     uconfig.report = function(c_id) {
       var form = document.createElement("form", "report_form");
@@ -94,6 +100,8 @@ define(
               }
           }
           if (!checked) return false;
+
+           okSound.setParam("play", 1);
 
           uconfig.player = el.value;
           var element = document.getElementById('overlay');
