@@ -15,6 +15,7 @@ require.config({
 			}
 				// hardcoded to read sounds served from jsaSound listening on port 8001 (on the same server as the AnticipatoryScore server is running)
 				var host = "http://"+window.document.location.hostname + ":8001";
+				//var host = "http://"+"172.23.68.214" + ":8001";
 				//alert("Will look for sounds served from " + host);
 				return (host );
 			})()

@@ -16,7 +16,8 @@ require.config({
 			// jsaSound server is hardcoded to port 8001 (on the same server as jsaBard - or from animatedsoundworks)
 				//LOCAL var host = "http://"+window.document.location.hostname + ":8001";
 				var host = "http://"+window.document.location.hostname + ":8001";
-				console.log("jsaBard will look for sounds served from " + host);
+				//var host = "http://"+"172.23.68.214" + ":8001";
+				//alert("will look for sounds served from " + host);
 				return (host );
 			})(),
 		"jquery": "http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min"
@@ -69,9 +70,10 @@ define(
 
 
 			//$.getJSON("soundList/TestModelDescriptors", function(data){
+				//alert("sound list served from " + soundServer+"soundList/ModelDescriptors")
 			$.getJSON(soundServer+"soundList/ModelDescriptors",  function(data){
 
-
+				//alert("got descriptors");
 				var items = data.jsonItems;
 				soundList=[];
 				//console.log("Yip! sound list is " + soundList);
