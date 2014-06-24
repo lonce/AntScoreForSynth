@@ -1,0 +1,29 @@
+{
+  "name": "AntScoreForSynth",
+  "version": "0.1.0",
+  "description": "Networked collaborative scrolling score for notating synthesis",
+  "main": "www/appscripts/main.js",
+  "dependencies": {
+    "express": "^3.1.0",
+    "ws": "^0.4.25"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lonce/AntScoreForSynth.git"
+  },
+  "keywords": [
+    "music",
+    "dynamic",
+    "score"
+  ],
+  "author": "Lonce Wyse",
+  "license": "LGPL",
+  "bugs": {
+    "url": "https://github.com/lonce/AntScoreForSynth/issues"
+  },
+  "homepage": "https://github.com/lonce/AntScoreForSynth"
+}
