@@ -51,7 +51,7 @@ define(
 		soundSelectorInterface.getModelName=function(){
 			var retval;
 			if (soundSelectorElem.selectedIndex <1) {
-				retval =  undefined;  // we added a "blank" to the selector list.
+				return  undefined;  // we added a "blank" to the selector list.
 			} else {
 				retval = soundList[soundSelectorElem.selectedIndex-1].fileName;
 			}

@@ -13,6 +13,7 @@ define(
         var m_g_start_y;
         var m_g_end_y;
 
+        var m_soundSelector;
 
         // global to all agents
         // tso is "time since origin" - the time value of the "now" line when the method is called
@@ -34,7 +35,12 @@ define(
 
                 m_gesture.soundbank=soundbank;
 
-                comm.sendJSONmsg("beginGesture", {"d":m_gesture.d, "type": "mouseContourGesture", "cont": false});
+                m_gesture.soundName = m_soundSelector.getModelName();
+                m_gesture.param1=m_soundSelector.getSelectedParamName(1);
+                m_gesture.param2=m_soundSelector.getSelectedParamName(2);
+
+
+                comm.sendJSONmsg("beginGesture", {"d":m_gesture.d, "type": "mouseContourGesture", "cont": false, "fields": m_gesture.getKeyFields()});
  
                 console.log("starting gesture at " + m_gesture.d[0][0] + ", " + m_gesture.d[0][1] + ", " + m_gesture.d[0][2]);
                 return m_gesture;
@@ -49,6 +55,7 @@ define(
 
 
              agent.tick=function(tso, scoreEvents){
+                if (! m_soundSelector) return;  // don't make a gesture if no sound models have been selected yet.
                 if ((tso-clockTimeOfLastAction) > m_actInterval){
                     console.log("doing something at time " + tso);
                     scoreEvents.push(makeGesture(tso));
@@ -62,6 +69,9 @@ define(
             }
 
 
+            agent.setSoundSelector = function(s){
+                m_soundSelector=s;
+            }
 
             return agent;
         }
