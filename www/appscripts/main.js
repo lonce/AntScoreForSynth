@@ -123,7 +123,7 @@ require(
 		soundSelect.setCallback("newSoundSelector", newSoundHandler);
 		function newSoundHandler(currentSMFactory) {
 			var model = soundSelect.getModelName();
-			m_agent.setSoundSelector(soundSelect);
+			m_agent && m_agent.setSoundSelector(soundSelect);
 
 			if (! model) return;
 			console.log("newSoundHandler: soundModeName is " + model);
