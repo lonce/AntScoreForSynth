@@ -15,6 +15,7 @@ define(
         var m_polyNum=[]; // indexed by sound name:  number = m_polyNum[sname]
         var snds=[];      // indexed by sound name   m_snds[sname][voice_num]
 
+
         soundbank.addSnd = function(sname, sndFactory, poly){
         	m_maxPolyphony=poly;
                 if (snds[sname]){

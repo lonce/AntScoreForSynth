@@ -120,6 +120,7 @@ html, body
         height: 100%; 
         float: left; 
         overflow: visible;
+        font-family: "Courier New", Courier, monospace;
     }
 
 

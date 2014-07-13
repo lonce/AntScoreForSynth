@@ -41,6 +41,10 @@ define(
 
 		var m_cb;
 
+        soundSelectorInterface.setMute=function(bool){
+                jsaSoundConfig.setMute(bool);
+        }
+
 		soundSelectorInterface.setCallback=function(selector, user_cb){
 			soundSelectorElem = document.getElementById(selector);
 			makeSoundListSelector();
@@ -62,7 +66,7 @@ define(
 
 
 
-		var doNotUseList=["requiredURL", "mic"];
+		var useList=["AntScore"];
 		// Create the html select box using the hard-coded soundList above
 		function makeSoundListSelector() {
 			var i;
@@ -80,7 +84,7 @@ define(
 				soundSelectorElem.options.length=0;
 				soundSelectorElem.add(new Option('Choose Sound'));
 				for (i = 0; i < items.length; i += 1) {
-					if ((! items[i].modelKeys) || (! intersectionP(items[i].modelKeys, doNotUseList))){
+					if ((items[i].modelKeys) && (intersectionP(items[i].modelKeys, useList))){
 						currOptionName = items[i].displayName || "";
 						soundSelectorElem.add(new Option(currOptionName));
 

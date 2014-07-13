@@ -7,20 +7,6 @@
 		startTime  - sent when another chatroom member requests a new time origin. Data is the server Date.now.
 */
 
-require.config({
-	paths: {
-		"jsaSound": (function(){
-			if (! window.document.location.hostname){
-				alert("This page cannot be run as a file, but must be served from a server (e.g. animatedsoundworks.com:8001, or localhost:8001)." );
-			}
-				// hardcoded to read sounds served from jsaSound listening on port 8001 (on the same server as the AnticipatoryScore server is running)
-				var host = "http://"+window.document.location.hostname + ":8001";
-				//var host = "http://"+"172.23.68.214" + ":8001";
-				//alert("Will look for sounds served from " + host);
-				return (host );
-			})()
-	}
-});
 require(
 	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "agentPlayer", "config", "userConfig"],
 
@@ -138,13 +124,17 @@ require(
 
 		toggleSoundButton.onclick=function(){
 			toggleSoundState=(toggleSoundState+1)%2;
+			/*
 			if(config.webkitAudioEnabled){
 				soundbank.addSnd(toggleSoundState*12); // max polyphony 
 			}
+			*/
 			if (toggleSoundState===0){
 				toggleSoundButton.style.background='#590000';
+				soundSelect.setMute(true);
 			} else {
 				toggleSoundButton.style.background='#005900';
+				soundSelect.setMute(false);
 			}
 		}
 
@@ -328,7 +318,7 @@ require(
 			console.log("add to soundbank for remote client " + data[0]);
 			soundSelect.loadSound(data[0],function(sfactory){
 				console.log("loaded sound for remote client")
-				soundbank.addSnd(data[0], sfactory, toggleSoundState*12); // max polyphony 
+				soundbank.addSnd(data[0], sfactory, 12); // max polyphony 
 			});
 
 		});
