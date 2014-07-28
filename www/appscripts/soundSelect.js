@@ -82,7 +82,7 @@ define(
 				soundList=[];
 				//console.log("Yip! sound list is " + soundList);
 				soundSelectorElem.options.length=0;
-				soundSelectorElem.add(new Option('Choose Sound'));
+				soundSelectorElem.add(new Option(' * Choose Sound * '));
 				for (i = 0; i < items.length; i += 1) {
 					if ((items[i].modelKeys) && (intersectionP(items[i].modelKeys, useList))){
 						currOptionName = items[i].displayName || "";
