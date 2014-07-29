@@ -24,7 +24,7 @@ require.config({
 	}
 });
 define(
-	["require", "jsaSound/jsaCore/sliderBox", "jsaSound/jsaCore/config", "jsaSound/jsaCore/utils", "jquery"],
+	["require", "jsaSound/jsaSndLib/sliderBox", "jsaSound/jsaSndLib/config", "jsaSound/jsaSndLib/utils", "jquery"],
 	function (require, makeSliderBox, jsaSoundConfig, utils) {
 
 		// This funciton just needs to be run once when a program is loaded. 
