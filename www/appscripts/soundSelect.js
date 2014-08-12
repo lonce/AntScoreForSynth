@@ -32,6 +32,7 @@ define(
 
 		var soundSelectorInterface={};
 
+		var m_loadadP=false;
 
 		var soundSelectorElem, param1Elem, param2Elem;  
 
@@ -40,6 +41,10 @@ define(
 		var soundList;
 
 		var m_cb;
+
+		soundSelectorInterface.loaded=function(){ 
+			return loadedP;
+		}
 
         soundSelectorInterface.setMute=function(bool){
                 jsaSoundConfig.setMute(bool);
@@ -107,11 +112,13 @@ define(
 
 		// When a sound is selected from the drop-down selector
 		function soundChoice() {
+			loadedP=false;
 			var sb;
 			if (soundSelectorElem.selectedIndex <1) return;  // we added a "blank" to the selector list.
 			soundSelectorInterface.loadSound(soundList[soundSelectorElem.selectedIndex-1].fileName, function(sndFactory){
 				m_cb(sndFactory); // pass the soundFactory back to the main program once it is loaded
 				initializeParamSelection(sndFactory);
+				loadedP=true;
 			});
 		}
 

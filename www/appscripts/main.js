@@ -112,7 +112,6 @@ require(
 			m_agent && m_agent.setSoundSelector(soundSelect);
 
 			if (! model) return;
-			console.log("newSoundHandler: soundModeName is " + model);
 			if(config.webkitAudioEnabled){
 					soundbank.addSnd(model, currentSMFactory, toggleSoundState*12); // max polyphony 
 			}
@@ -531,6 +530,8 @@ require(
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		function initiateContour(x, y){
+			if(! soundSelect.loaded()) return;
+
 			var z = k_minLineThickness + k_maxLineThickness*leftSlider.value;
 			// time at the "now" line + the distance into the future or past 
 			var t = Date.now()-timeOrigin + px2Time(x);			
