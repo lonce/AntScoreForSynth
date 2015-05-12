@@ -20,13 +20,14 @@ define(
         function makeGesture(tso){
                 var m_gesture=generalScoreEvent("mouseContourGesture");
 
+                // get the starting and ending time value
                 m_g_start_t = 2000+10000*Math.random(); // from 10 to 12 seconds into the future
                 m_g_end_t = m_g_start_t + k_min_d + (k_max_d-k_min_d)*Math.random();
-
+                // get the starting and ending y value
                 m_g_start_y = k_max_y*Math.random();
                 m_g_end_y = k_max_y*Math.random();
 
-                m_gesture.d=[[tso+m_g_start_t,m_g_start_y,5], [tso+m_g_end_t,m_g_end_y,5]];
+                m_gesture.d=[[tso+m_g_start_t,m_g_start_y,0], [tso+(m_g_start_t+m_g_end_t)/2,(m_g_start_y+m_g_end_y)/2,15], [tso+m_g_end_t,m_g_end_y,0]];  // third param is the same as provided by the slider on the interface
                 m_gesture.updateMaxTime();
                 m_gesture.updateMinTime();
                 m_gesture.s=0;//  myID;
