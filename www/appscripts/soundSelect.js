@@ -8,18 +8,20 @@ This library is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License and GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 require.config({
+
 	paths: {
-		"jsaSound": (function(){
+	
+			"jsaSound": (function(){
 			if (! window.document.location.hostname){
 				alert("This page cannot be run as a file, but must be served from a server (e.g. animatedsoundworks.com:8001, or localhost:8001)." );
 			}
 			// jsaSound server is hardcoded to port 8001 (on the same server as jsaBard - or from animatedsoundworks)
-				//LOCAL var host = "http://"+window.document.location.hostname + ":8001";
-				var host = "http://"+window.document.location.hostname + ":8001";
-				//var host = "http://"+"172.23.68.214" + ":8001";
+				//LOCAL  var host = "http://"+window.document.location.hostname + ":8001";
+				var host = "http://animatedsoundworks.com:8001";
 				//alert("will look for sounds served from " + host);
 				return (host );
 			})(),
+
 		"jquery": "http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min"
 	}
 });
@@ -37,6 +39,8 @@ define(
 		var soundSelectorElem, param1Elem, param2Elem;  
 
 		var currentSndModel;
+		// ack hack attack. jsaSound does not set this properly when running AntScore locally
+		jsaSoundConfig.resourcesPath = "http://animatedsoundworks.com:8001/";
 		var soundServer = jsaSoundConfig.resourcesPath;
 		var soundList;
 
