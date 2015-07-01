@@ -8,9 +8,9 @@
 */
 
 require(
-	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",  "tabs/textTab",   "tabs/selectTab", "agentPlayer", "config", "userConfig"],
+	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentPlayer", "config", "userConfig"],
 
-	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory, textTabFactory, selectTabFactory, agentPlayer, config, userConfig) {
+	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentPlayer, config, userConfig) {
 
 		var m_agent;
 		userConfig.report(function(){
@@ -39,6 +39,17 @@ require(
 		var myID=0;
 		var myRoom=undefined;
 		var displayElements = [];  // list of all items to be displayed on the score
+
+		displayElements.findElmt=function(src,id){
+			for(var i=0;i<this.length;i++){
+				if ((this[i].gID===id) && (this[i].s===src)){
+					return this[i];
+				}
+			}
+			return undefined;
+		}
+
+
 		var colorIDMap=[]; // indexed by client ID
 		var current_remoteEvent=[]; // indexed by client ID
 
@@ -191,6 +202,7 @@ require(
 
 		//radioContour.addEventListener("onclick", function(){console.log("radio Contour");});
 		var setTab=function(showTab){
+			// unshow whichever tab was perviuosly selected (in fact all others)
 			window.document.getElementById("contourTab").style.display="none";
 			window.document.getElementById("sprayTab").style.display="none";
 			window.document.getElementById("textTab").style.display="none";
@@ -199,11 +211,15 @@ require(
 			window.document.getElementById("chordTab").style.display="none";
 			window.document.getElementById("selectTab").style.display="none";
 
+			// now show the tabe that was selected with the radio buttons
+			// (these tabs provide the options for the selected mode)
 			window.document.getElementById(showTab).style.display="inline-block";
+
+
 			m_currentTab=showTab;
 			if (showTab != "selectTab"){
 				m_selectedElement = undefined;
-				// unselect everybody
+				// unselect any and all elements on the score
 				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 					displayElements[dispElmt].select(false);
 				}
@@ -213,7 +229,7 @@ require(
 		var m_pTab=pitchTabFactory();
 		var m_rTab=rhythmTabFactory();
 		var m_cTab=chordTabFactory();
-		var m_tTab=textTabFactory();
+		//var m_tTab=textTabFactory();
 		var m_sTab=selectTabFactory();
 
 		var k_sprayPeriod = 100;// ms between sprayed events
@@ -237,12 +253,14 @@ require(
 			if (data.length === 0) console.log("Got contour event with 0 length data!");
 			current_remoteEvent[src].e=data[data.length-1][0];
 		});
-				//---------------------------------------------------------------------------
+		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
 		comm.registerCallback('beginGesture', function(data, src) {
 			var fname;
 
+			console.log("new begin gesture from src " + src + ", and gID = " + data.gID);
 			current_remoteEvent[src]=scoreEvent(data.type);
+			current_remoteEvent[src].gID=data.gID;
 
 			// automatically fill any fields of the new scoreEvent sent
 			for (fname in data.fields){
@@ -268,7 +286,17 @@ require(
 			}
 		});
 
-
+	//----------------------
+		comm.registerCallback('update', function (data, src){
+				var foo = displayElements.findElmt(src, data.gID);
+				console.log("foo is " + foo);
+				for (fname in data){
+					foo[fname]=data[fname];
+					if (fname === "text"){
+						foo.setText(data[fname]);
+					}
+				}
+		});
 		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
 		comm.registerCallback('endGesture', function(data, src) {
@@ -449,13 +477,12 @@ require(
 				// If its moved out of our score window, delete it from the display list
 				t_end=time2Px(displayElements[dispElmt].e);
 
-
-
-
 				if (t_end < pastLinePx) {
 					// remove event from display list
 					//console.log("deleting element at time " + displayElements[dispElmt].e);
+					displayElements[dispElmt].destroy();
 					displayElements.splice(dispElmt,1);
+
 				} else{
 
 					var dispe = displayElements[dispElmt];	
@@ -530,7 +557,8 @@ require(
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		function initiateContour(x, y){
-			if(! soundSelect.loaded()) return;
+			// don't draw contours if no sound is loaded (but allow text entry)
+			if((! soundSelect.loaded()) && (! (radioSelection==='text'))) return;
 
 			var z = k_minLineThickness + k_maxLineThickness*leftSlider.value;
 			// time at the "now" line + the distance into the future or past 
@@ -545,7 +573,7 @@ require(
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "cont": true, "fields": current_mgesture.getKeyFields()  });
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields()  });
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
 				console.log("starting gesture at " + t + ", " + y + ", " + z);
@@ -567,11 +595,12 @@ require(
 			} 
 
 			if (radioSelection==='text'){
-				current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
+				//current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
+				current_mgesture=scoreEvent("textEvent");
 				current_mgesture.d=[[t,y,z]];
 
 				// calculate the length of the text box on the canvas
-				current_mgesture.d.push([t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z]);
+				//current_mgesture.d.push([t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z]);
 
 				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
 				//comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });

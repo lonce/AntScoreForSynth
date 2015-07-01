@@ -5,17 +5,63 @@ define(
       // For rhythm, the argument to this factory function is an image
       return function (i_arg){
 
+         var textBox=document.createElement("input");
+         textBox.className="textBox1"
+         var scoreElmt=document.getElementById("block1b");
+
+         //var foo = scoreElmt.getBoundingClientRect();
+
+         textBox.value="";
+         //textBox.style.top=scoreElmt.offsetTop + "px";
+         //textBox.style.left=scoreElmt.offsetLeft + "px";
+
+         console.log("appending textBox");
+         scoreElmt.appendChild(textBox);
+         textBox.focus();
+
+
          var m_scoreEvent=generalScoreEvent("textEvent");
          m_scoreEvent.head="text";
          m_scoreEvent.tail=false;
 
-         m_scoreEvent.text= i_arg;
+         m_scoreEvent.text= i_arg || "";
 
          m_textHeight=12;
 
+/*
          m_scoreEvent.addChar = function (c){
             m_scoreEvent.text+=c;
          }
+*/
+
+        m_scoreEvent.setText=function(iText){
+          m_scoreEvent.text=iText;
+          textBox.value= iText;
+        }
+
+         textBox.onkeyup=function(evt){
+          var chrTyped, chrCode = 0;
+          m_scoreEvent.text=textBox.value;
+          console.log("in onkeyup, on keypress m_scoreEvent.text = " + m_scoreEvent.text);
+          if (evt.keyIdentifier==="Enter") {
+            m_scoreEvent.comm.sendJSONmsg("update", {"gID": m_scoreEvent.gID, "text": m_scoreEvent.text});
+            textBox.blur();
+          }
+
+          /*
+          if (evt.charCode!=null)     chrCode = evt.charCode;
+          else if (evt.which!=null)   chrCode = evt.which;
+          else if (evt.keyCode!=null) chrCode = evt.keyCode;
+
+          if (chrCode==0) chrTyped = 'SPECIAL KEY';
+          else chrTyped = String.fromCharCode(chrCode);
+          console.log("textBox key press:  " + chrTyped);
+          //m_scoreEvent.text+=c;
+          m_scoreEvent.text+=chrTyped;
+          console.log("onkeypress, scoreEvent.text is " + m_scoreEvent.text);
+          */
+         }
+         
 
          m_scoreEvent.draw = function(ctx, time2Px, nowishP, now){
             if (this.selectedP){
@@ -27,7 +73,11 @@ define(
 
          m_scoreEvent.myDraw = function(ctx, x, y){
 
-               //console.log("rhythmTag, arg is " + i_arg);
+                var seRect = scoreElmt.getBoundingClientRect();
+                var tbRect = textBox.getBoundingClientRect();
+
+/*
+              //console.log("rhythmTag, arg is " + i_arg);
                ctx.font = "9px sans-serif";
                
                ctx.beginPath();
@@ -44,10 +94,24 @@ define(
                ctx.fill();      
 
                ctx.fillText(m_scoreEvent.text, x, y+12);
+*/
+
+                //textBox.value=m_scoreEvent.text;
+                //console.log("myDraw: m_scoreEvent.text = " + m_scoreEvent.text);
+                textBox.style.top=scoreElmt.offsetTop + scoreElmt.clientHeight*y/ctx.canvas.height+"px";
+                textBox.style.left=scoreElmt.offsetLeft+ scoreElmt.clientWidth*x/ctx.canvas.width+"px";
+                textBox.size=Math.max(3, .8*textBox.value.length);
+                textBox.style.clip = "rect(0px " + (tbRect.width+seRect.right-tbRect.right) + "px " +  (tbRect.height+seRect.bottom-tbRect.bottom) +  "px " + (seRect.left-tbRect.left)  + "px)"; //scoreElmt.getBoundingClientRect();
+                //console.log("textBox length = " + textBox.value.length);
+                //console.log ("x = " + x + ", ctx.canvas.width = " + ctx.canvas.width + ", textBox.x is " + textBox.style.left);
+         }
+
+         m_scoreEvent.destroy = function(){
+            scoreElmt.removeChild(textBox);
          }
 
          //m_scoreEvent.mySVG= '<svg height="12" width="12"> <text x="0" y="15" fill="red">I love SVG!</text> </svg>'
-
+/*
          var textImage = new Image();
          m_scoreEvent.myDraw_SVG = function(ctx, x, y){
 
@@ -85,7 +149,7 @@ define(
              ].join('\n');
          };
 
-
+*/
 
 
          m_scoreEvent.touchedP = function(t,y){

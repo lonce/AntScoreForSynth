@@ -14,6 +14,7 @@ define(
 
          canvasSlider.value = .5; // normallized
 
+
          var sliderCanvas=canvasSlider;
 
          var outsideElmtListener;

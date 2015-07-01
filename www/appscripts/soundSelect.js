@@ -16,8 +16,8 @@ require.config({
 				alert("This page cannot be run as a file, but must be served from a server (e.g. animatedsoundworks.com:8001, or localhost:8001)." );
 			}
 			// jsaSound server is hardcoded to port 8001 (on the same server as jsaBard - or from animatedsoundworks)
-				//LOCAL  var host = "http://"+window.document.location.hostname + ":8001";
-				var host = "http://animatedsoundworks.com:8001";
+				var host = "http://"+window.document.location.hostname + ":8001";
+				//var host = "http://animatedsoundworks.com:8001";
 				//alert("will look for sounds served from " + host);
 				return (host );
 			})(),
@@ -34,20 +34,20 @@ define(
 
 		var soundSelectorInterface={};
 
-		var m_loadadP=false;
+		var m_loadedP=false;
 
 		var soundSelectorElem, param1Elem, param2Elem;  
 
 		var currentSndModel;
 		// ack hack attack. jsaSound does not set this properly when running AntScore locally
-		jsaSoundConfig.resourcesPath = "http://animatedsoundworks.com:8001/";
+		//jsaSoundConfig.resourcesPath = "http://animatedsoundworks.com:8001/";
 		var soundServer = jsaSoundConfig.resourcesPath;
 		var soundList;
 
 		var m_cb;
 
 		soundSelectorInterface.loaded=function(){ 
-			return loadedP;
+			return m_loadedP;
 		}
 
         soundSelectorInterface.setMute=function(bool){
@@ -116,13 +116,13 @@ define(
 
 		// When a sound is selected from the drop-down selector
 		function soundChoice() {
-			loadedP=false;
+			m_loadedP=false;
 			var sb;
 			if (soundSelectorElem.selectedIndex <1) return;  // we added a "blank" to the selector list.
 			soundSelectorInterface.loadSound(soundList[soundSelectorElem.selectedIndex-1].fileName, function(sndFactory){
 				m_cb(sndFactory); // pass the soundFactory back to the main program once it is loaded
 				initializeParamSelection(sndFactory);
-				loadedP=true;
+				m_loadedP=true;
 			});
 		}
 

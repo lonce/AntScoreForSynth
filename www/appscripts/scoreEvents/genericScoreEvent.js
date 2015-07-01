@@ -1,8 +1,11 @@
 define(
-   [],
-   function () {
+   ["comm"],
+   function (comm) {
+
+      var  gID_counter=0; /// give each event a unique id // 2015.07.01 - invented since text boxes can get messages any time - they don't stay "current" like other genestures as they are being made.
+
+
       return function (i_type){
- 
 
          var genEvent={
             type: i_type || null,            // String identifying gesture type
@@ -17,6 +20,9 @@ define(
             drawID: false, 
             font: "12px Arial",     
             selectedP: false,
+            gID: gID_counter++,
+
+            "comm": comm,
 
 
             duplicate: function(tshift, yshift, newEvent){
@@ -92,6 +98,10 @@ define(
             stopSound: function(){
                this.snd && this.snd.release();
                this.snd && this.soundbank.releaseSnd(this.snd);
+            },
+
+            destroy: function(){
+               // override to so whatever you need to do to get the element off the screen or whatever
             },
 
 

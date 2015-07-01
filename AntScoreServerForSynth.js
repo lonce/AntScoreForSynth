@@ -61,6 +61,11 @@ function unsubscribe(rm) {
     }
 }
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+function genericBroadcast(m, data) {
+    roomBroadcast(this.room, this, m, data);
+}
+
 // basic data exchange method for responding to one socket, sending to rest
 function contGesture(data) {
     roomBroadcast(this.room, this, 'contGesture', data);
@@ -109,11 +114,20 @@ function receiveJSONmsg(data, flags) {
         return;
     }
     
-    if (!obj.hasOwnProperty('d') || !obj.hasOwnProperty('n') || callbacks[obj.n] === undefined)
+    if (!obj.hasOwnProperty('d') || !obj.hasOwnProperty('n'))
         return;
     //console.log("object.d: " + object.d + ", object.n:"+ object.n);
 
-    callbacks[obj.n].call(this, obj.d);
+    //callbacks[obj.n].call(this, obj.d);
+    if (callbacks[obj.n]){
+        console.log("callback: " + obj.n);
+        callbacks[obj.n].call(this, obj.d);
+    } else {
+        console.log("generic callback: " + obj.n);
+        genericBroadcast.call(this, obj.n, obj.d);
+    }
+
+
 }
 //****************************************************************************
 // Server activity code (other than it's simple message-relay duties)
