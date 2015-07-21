@@ -14,7 +14,7 @@ define(
             s: null,                         // a source ID (number)
             b: 999999999999999999999999999,  // begin time for this gesture
             e: -999999999999999999999999999, // end time for this gesture
-            color: "FFFFFF",
+            color: "#FFFFFF",
             head: "rectangle",                // "diamond", "circle", "rectangle"
             tail: true,                      // boolean for now     
             drawID: false, 

@@ -27,6 +27,7 @@ define(
          m_scoreEvent.drawpolygon = function(ctx, time2Px, nowishP, now){
             var dispPx=time2Px(this.d[0][0]);
 
+
             // Display the element
             ctx.fillStyle = this.color;
             ctx.fillText(this.s, dispPx, this.d[0][1]);
@@ -39,8 +40,12 @@ define(
 
             // DRAW ONE BIG POLYGON
             // One line all the way to the end
-            ctx.beginPath();
+            //console.log("+++++");
+            //console.log("ctx.strokeStyle is " + ctx.strokeStyle + ", and this.color is " + this.color);
             ctx.strokeStyle = this.color;
+            //console.log("")
+            ctx.beginPath();
+            //console.log("draw [" + this.s + "] in color " + this.color)
             ctx.moveTo(dispPx,this.d[0][1]);
             ctx.lineWidth = 1;
             //console.log("drawing - datalenght = " + this.d.length+ ", color = " + ctx.strokeStyle + ", px = "+ dispPx + ", " + this.d[0][1]);

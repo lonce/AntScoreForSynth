@@ -74,12 +74,14 @@ html, body
 
     }
 #block1c {
-        background-color: #4B0082;
+        /* background-color: #4B0082; */
+        background-color: green;
         width: 20%;
         height: 100%; 
 
         float: left; 
         overflow: auto;
+        position: relative;
 
     }
 

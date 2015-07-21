@@ -8,9 +8,9 @@
 */
 
 require(
-	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentPlayer", "config", "userConfig"],
+	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentPlayer", "config", "userConfig", "chatter"],
 
-	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentPlayer, config, userConfig) {
+	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentPlayer, config, userConfig, chatter) {
 
 		var m_agent;
 		userConfig.report(function(){
@@ -40,10 +40,11 @@ require(
 		var myRoom=undefined;
 		var displayElements = [];  // list of all items to be displayed on the score
 
-		displayElements.findElmt=function(src,id){
-			for(var i=0;i<this.length;i++){
-				if ((this[i].gID===id) && (this[i].s===src)){
-					return this[i];
+		var findElmt=function(objArray,src,id){
+			for(var i=0;i<objArray.length;i++){
+				//console.log("findElmt: obj.gID = " + objArray[i].gID + " (id = " + id + "), and obj.s = " + objArray[i].s + " ( src = " + src + ")");
+				if ((objArray[i].gID===id) && (objArray[i].s===src)){
+					return objArray[i];
 				}
 			}
 			return undefined;
@@ -114,6 +115,10 @@ require(
 		var toggleSoundButton = window.document.getElementById("soundToggleButton");
 		var toggleSoundState=1;
 		toggleSoundButton.style.background='#005900';
+
+
+		var m_chatter=chatter(window.document.getElementById("publicChatArea"),
+			window.document.getElementById("myChatArea"));
 
 		//-----------------------------------------------------------------------------
 		//var newSoundSelector = window.document.getElementById("newSoundSelector")
@@ -258,7 +263,7 @@ require(
 		comm.registerCallback('beginGesture', function(data, src) {
 			var fname;
 
-			console.log("new begin gesture from src " + src + ", and gID = " + data.gID);
+			//console.log("new begin gesture from src " + src + ", and gID = " + data.gID);
 			current_remoteEvent[src]=scoreEvent(data.type);
 			current_remoteEvent[src].gID=data.gID;
 
@@ -279,17 +284,19 @@ require(
 			displayElements.push(current_remoteEvent[src]);
 
 			if (data.cont && (data.cont===true)){
-				console.log("more data for this gesture will be expected");
+				//console.log("more data for this gesture will be expected");
 			} else {
-				console.log("received completed gesture, terminate the reception of data for this gesture");
+				//console.log("received completed gesture, terminate the reception of data for this gesture");
 				current_remoteEvent[src]=undefined; // no more data coming
 			}
 		});
 
-	//----------------------
+	//------------------------
+	// Finds the at most one element on the display list from the src with data.gID 
+	// and updates with all the fields sent
 		comm.registerCallback('update', function (data, src){
-				var foo = displayElements.findElmt(src, data.gID);
-				console.log("foo is " + foo);
+				var foo = findElmt(displayElements, src, data.gID);
+				//console.log("foo is " + foo);
 				for (fname in data){
 					foo[fname]=data[fname];
 					if (fname === "text"){
@@ -349,6 +356,14 @@ require(
 			});
 
 		});
+
+	//------------------------
+	// For chatting
+		comm.registerCallback('chat', function (data, src){
+			console.log("got chat from src = " + src);
+			m_chatter.setText(src, data.text); 
+		});
+
 
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Client activity
@@ -576,7 +591,7 @@ require(
 				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields()  });
 				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
 
-				console.log("starting gesture at " + t + ", " + y + ", " + z);
+				//console.log("starting gesture at " + t + ", " + y + ", " + z);
 			} 
 
 			if (radioSelection==='spray'){
@@ -604,7 +619,7 @@ require(
 
 				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
 				//comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": current_mgesture.getKeyFields() });
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "gID": current_mgesture.gID, "cont": false, "fields": current_mgesture.getKeyFields() });
 
 			}
 
@@ -647,7 +662,7 @@ require(
 			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
 			if (myRoom != undefined) {
-				console.log("sending event");
+				//console.log("sending event");
 				if (current_mgesture_2send){
 					if (current_mgesture_2send.d.length > 0){
 						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);

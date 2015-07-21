@@ -35,7 +35,7 @@ define(
                 m_gesture.updateMinTime();
 
                 m_gesture.s=0;//  myID;
-                m_gesture.color="#00FF00";
+                m_gesture.color="#FFFFFF";
 
                 m_gesture.soundbank=soundbank;
 

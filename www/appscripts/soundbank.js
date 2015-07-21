@@ -21,6 +21,8 @@ define(
                 if (snds[sname]){
                         console.log(" The sound " + sname + " was already loaded, so no need to do it again");
                         return;
+                } else {
+                        console.log("adding sound with poly = " + poly);
                 }
                 //else
                 snds[sname]=[];
@@ -36,10 +38,11 @@ define(
                 polylist=snds[sname];
                 nextSndNum=m_polyNum[sname];
 
-                console.log("soundbank.getSnd: sname = " + sname + ", and nextSndNum = " + nextSndNum);
+                //console.log("soundbank.getSnd: sname = " + sname + ", and nextSndNum = " + nextSndNum);
 
         	while(i<m_maxPolyphony) {
         		nextSndNum=(nextSndNum+1)%m_maxPolyphony;
+                        //console.log("nextSndNum = " + nextSndNum);
         		//console.log("snds["+m_polyNum+"] = " + snds[m_polyNum]);
         		if (polylist[nextSndNum].available){
         			polylist[nextSndNum].available=false;

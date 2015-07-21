@@ -11,7 +11,7 @@ define(
             d: null,
             s: null,
 
-            color: "FFFFFF",
+            color: "#FFFFFF",
             //legalValues: k_pitches,
             pitchVal: i_arg,
  

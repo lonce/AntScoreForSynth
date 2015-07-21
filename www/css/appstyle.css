@@ -270,14 +270,20 @@ color:white;
 #tabDiv{
 		color: white;
 		border:1px solid #0000FF;
-		height: 26%;
+		height: 12%;
 }
-#chatArea{
-	width: 98%;
-	border:3px solid #FFFFFF;
-	height: 28%;
+#publicChatArea{
+	width: 97%;
+	border:2px solid #000000;
+	height: 35%;
 }
-
+#myChatArea{
+	width: 97%;
+	border:2px solid #000000;
+	height: 10%;
+	position:absolute; 
+	bottom:0;
+}
 .textBox1 { 
 	position: absolute;
 }
