@@ -300,7 +300,7 @@ require(
 				for (fname in data){
 					foo[fname]=data[fname];
 					if (fname === "text"){
-						foo.setText(data[fname]);
+						foo.setText(src, data[fname]);
 					}
 				}
 		});

@@ -34,8 +34,8 @@ define(
          }
 */
 
-        m_scoreEvent.setText=function(iText){
-          m_scoreEvent.text=iText;
+        m_scoreEvent.setText=function(id, iText){
+          m_scoreEvent.text=id + "> " + iText;
           textBox.value= iText;
         }
 

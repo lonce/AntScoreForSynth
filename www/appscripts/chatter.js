@@ -11,7 +11,7 @@ define(
 
 		privateTB.onkeyup=function(evt){
 			var chrTyped, chrCode = 0;
-			console.log("in onkeyup,  my chat text = " + privateTB.value);
+			//console.log("in onkeyup,  my chat text = " + privateTB.value);
 			if (evt.keyIdentifier==="Enter") {
 				comm.sendJSONmsg("chat", {"text": privateTB.value});
 				chatter.setText("me ", privateTB.value);
