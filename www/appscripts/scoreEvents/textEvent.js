@@ -36,7 +36,7 @@ define(
 
         m_scoreEvent.setText=function(id, iText){
           m_scoreEvent.text=id + "> " + iText;
-          textBox.value= iText;
+          textBox.value= id + "> " + iText;
         }
 
          textBox.onkeyup=function(evt){
