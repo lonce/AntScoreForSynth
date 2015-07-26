@@ -9,13 +9,18 @@ define(
     	var pubicTB = i_publicTB;
     	var privateTB = i_privateTB;
 
+    	privateTB.prompt=">> ";
+    	privateTB.value=privateTB.prompt;
+
 		privateTB.onkeyup=function(evt){
 			var chrTyped, chrCode = 0;
+			var msg;
 			//console.log("in onkeyup,  my chat text = " + privateTB.value);
 			if (evt.keyIdentifier==="Enter") {
-				comm.sendJSONmsg("chat", {"text": privateTB.value});
-				chatter.setText("me ", privateTB.value);
-				privateTB.value="";
+				msg=privateTB.value.slice(privateTB.prompt.length);
+				comm.sendJSONmsg("chat", {"text": msg});
+				chatter.setText("me ", msg);
+				privateTB.value=privateTB.prompt;
 			}
 		}
 

@@ -10,47 +10,52 @@
 html, body
 {
     height: 100%;
+    width: 100%;
     background-color:black;
     color:white;
-
 }
+
 
 #wrap {
     width: 100%;
     height: 100%;
-    background-color: yellow;
+    background-color: black;
 }
 #block0{
     width: 100%;
     background-color:pink;
-    height: 10%;
+    position: relative;
+    height: 7%;
 }
 #block0a{
         background-color: black;
         width: 3%;
         height: 100%; 
         float: left; 
-        overflow: visible;
 }
 #block0b{
         background-color: black;
-        width: 77%;
+        width: 25%;
         height: 100%; 
         float: left; 
-        overflow: visible;
 }
 #block0c{
+        background-color: black;
+        width: 52%;
+        height: 100%; 
+        position: relative;
+        float: left; 
+}
+#block0d{
         background-color: black;
         width: 20%;
         height: 100%; 
         float: left; 
-        overflow: visible;
 }
 
 #block1 {
     width: 100%;
-    height: 65%;
-    max-height: 65%;
+    height: 55%;
     background-color: red;
 }
 
@@ -86,12 +91,11 @@ html, body
     }
 
 
-
+/* Blocks 3 and 4 have 4 rows each */
 #block3 {
     background-color: green;
     width: 100%;
-    height: 15%;
-    max-height: 15%;
+    height: 7%;
     overflow: visible;
 }
 
@@ -114,7 +118,6 @@ html, body
         width: 52%;
         height: 100%; 
         float: left; 
-        overflow: visible;
     }
 #block3d {
         background-color: black;
@@ -125,10 +128,55 @@ html, body
         font-family: "Courier New", Courier, monospace;
     }
 
+/* Blocks 3 and 4 have 4 rows each */
+#block4{
+   background-color:black;
+    height: 29%;  
+    z-index: -1;  
+}
+
+#block4a {
+        background-color: black;
+        width: 3%;
+        height: 100%; 
+        float: left; 
+    }
+#block4b {
+        background-color: rgba(0,0,0,0); /* allows block3b buttons to overflow and be on top and visible if necessary */
+        width: 25%;
+        height: 100%; 
+        float: left; 
+        z-index: -1;
+    }
+#block4c {
+        background-color: black;
+        width: 52%;
+        height: 100%; 
+        float: left; 
+    }
+#block4c1{
+    width: 24%;
+    height: 100%;
+    background-color: grey;
+    float: left;
+}
+#block4c2{
+    width: 74%;
+    height: 100%;
+    background-color: black;
+    float: left;
+}
+#block4d {
+        background-color: black;
+        width: 20%;
+        height: 100%; 
+        float: left; 
+    }
+
 
 #footer{
     background-color:black;
-    height: 10%;
+    height: 23%;
 
     font-family:Calibri ; font-size:10px;
 

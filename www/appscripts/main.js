@@ -466,11 +466,20 @@ require(
  			context.fillStyle = "#999999";
  			var sTime = (elapsedtime+scoreWindowTimeLength*(2/3))- (elapsedtime+scoreWindowTimeLength*(2/3))%sprocketInterval;
 			var sPx= time2Px(sTime);
+			//console.log("t since origin is " + t_sinceOrigin + ", and sTime is " + sTime);
 			while(sPx > 0){ // loop over sprocket times within score window
 				context.fillRect(sPx,0,sprocketWidth,sprocketHeight);
 				context.fillRect(sPx,1*theCanvas.height-sprocketHeight,sprocketWidth,sprocketHeight);
 				sPx-=pixelShiftPerMs*sprocketInterval;
 			}
+			var disTime=sTime-(sTime%5000);
+			context.font="7px Verdana";
+			while (disTime >=(sTime-scoreWindowTimeLength)){
+				context.fillText(disTime/1000,time2Px(disTime),10);
+				//console.log("write disTime= " + disTime);
+				disTime-=5000;
+			}
+			context.font="9px Arial";
 
 			//------------
 			//draw track lines
@@ -612,6 +621,7 @@ require(
 			if (radioSelection==='text'){
 				//current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
 				current_mgesture=scoreEvent("textEvent");
+				current_mgesture.enableEditing(); // enable since it's our own for typing into
 				current_mgesture.d=[[t,y,z]];
 
 				// calculate the length of the text box on the canvas
@@ -757,8 +767,9 @@ require(
 			// create a display clock tick every 1000 ms
 			while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
 				m_tickCount++;
-				k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
 				m_lastDisplayTick += 1000;
+				k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
+
 
 				//console.log("displayElements length is " + displayElements.length)
 				if (displayElements.length >2){

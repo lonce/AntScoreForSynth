@@ -130,8 +130,7 @@ text-align:center;
 color:white;
 	-webkit-user-select: none;
 	user-select: none;
-	width: 88%;
-	text-align: center	
+
 }
 
 #timeDisplayDiv
@@ -139,8 +138,7 @@ color:white;
 color:white;
 	-webkit-user-select: none;
 	user-select: none;
-	width: 88%;
-	text-align: center	
+
 }
 
 #app{
@@ -246,22 +244,24 @@ color:white;
 #yLockButtonDiv {
 	float: right; 
 	padding: 3%;
+	z-index: 1;
 
 }
 
 #yLockButton {
 	color: white;
-
+	z-index: 1;
 }
 
 
 #timebuttondiv {
         float: right; 
         padding: 3%;
+        	z-index: 1;
 }
 #timeLockButton {
 	color: white;
-
+	z-index: 1;
 }
 
 #timeLockSlider {
@@ -272,18 +272,27 @@ color:white;
 		border:1px solid #0000FF;
 		height: 12%;
 }
-#publicChatArea{
-	width: 97%;
-	border:2px solid #000000;
-	height: 35%;
-}
-#myChatArea{
-	width: 97%;
-	border:2px solid #000000;
+#chatheader{
+	width: 100%;
 	height: 10%;
-	position:absolute; 
-	bottom:0;
+	border:2px solid #000000;
+	text-align: center;
+}	
+
+#myChatArea{
+	width: 98%;
+	border:2px solid #000000;
+	height: 88%;
+	resize: none;
 }
+#publicChatArea{
+	width: 100%;
+	border:2px solid #000000;
+	height: 100%;
+	resize: none;
+
+}
+
 .textBox1 { 
 	position: absolute;
 }
