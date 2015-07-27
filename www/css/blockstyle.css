@@ -80,7 +80,7 @@ html, body
     }
 #block1c {
         /* background-color: #4B0082; */
-        background-color: green;
+        background-color: black;
         width: 20%;
         height: 100%; 
 
@@ -159,18 +159,23 @@ html, body
     height: 100%;
     background-color: grey;
     float: left;
+    padding: 1px;
+    margin: 2px;
 }
 #block4c2{
-    width: 74%;
+    width: 70%;
     height: 100%;
     background-color: black;
     float: left;
+    padding: 2px;
 }
 #block4d {
         background-color: black;
         width: 20%;
         height: 100%; 
         float: left; 
+        overflow: visible;
+        font-family: "Courier New", Courier, monospace;
     }
 
 

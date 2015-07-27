@@ -1,12 +1,12 @@
 define(
 	["comm"],
 	function (comm) {
-      // For rhythm, the argument to this factory function is an image
+      // argurments are <textareas>
       return function (i_publicTB, i_privateTB){
 
     	var chatter={};
 
-    	var pubicTB = i_publicTB;
+    	var publicTB = i_publicTB;
     	var privateTB = i_privateTB;
 
     	privateTB.prompt=">> ";
@@ -19,14 +19,20 @@ define(
 			if (evt.keyIdentifier==="Enter") {
 				msg=privateTB.value.slice(privateTB.prompt.length);
 				comm.sendJSONmsg("chat", {"text": msg});
-				chatter.setText("me ", msg);
+				chatter.setText("me", msg);
 				privateTB.value=privateTB.prompt;
 			}
 		}
 
         chatter.setText=function(id, iText){
-        	pubicTB.value += id + "> " + iText;
-        	pubicTB.scrollTop = pubicTB.scrollHeight;
+        	/* can't have different color text in a text area 
+        	if (id === "me") {
+        		publicTB.style.color="green";
+        	} else {
+        		publicTB.style.color="white";
+        	} */
+        	publicTB.value += id + "> " + iText;
+        	publicTB.scrollTop = publicTB.scrollHeight;
         }
 
         return chatter;

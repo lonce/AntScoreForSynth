@@ -11,11 +11,9 @@ define(
 
          //var foo = scoreElmt.getBoundingClientRect();
 
-         textBox.value="";
-         if (this.s != 0) {
-          textBox.readOnly = true;
-          console.log("foreign text box - read only");
-        }
+        textBox.readOnly = true; // by default - change manually if its our own 
+
+
          //textBox.style.top=scoreElmt.offsetTop + "px";
          //textBox.style.left=scoreElmt.offsetLeft + "px";
 
@@ -40,6 +38,7 @@ define(
 
         m_scoreEvent.enableEditing= function(){
           textBox.readOnly = false;
+          textBox.style.border="2px solid green";
         }
 
         m_scoreEvent.setText=function(id, iText){

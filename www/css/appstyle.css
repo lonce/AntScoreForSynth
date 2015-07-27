@@ -273,24 +273,29 @@ color:white;
 		height: 12%;
 }
 #chatheader{
-	width: 100%;
+	width: 98%;
 	height: 10%;
-	border:2px solid #000000;
+	border:2px solid #00FF00;
 	text-align: center;
+
 }	
 
 #myChatArea{
 	width: 98%;
-	border:2px solid #000000;
+	border:2px solid #00FF00;
 	height: 88%;
 	resize: none;
+
 }
 #publicChatArea{
-	width: 100%;
-	border:2px solid #000000;
+	width: 96%;
+	border:2px solid #0000FF;
 	height: 100%;
 	resize: none;
-
+	background-color: grey;
+	color: white;
+	padding: 1px;
+	margin: 1px;
 }
 
 .textBox1 { 
