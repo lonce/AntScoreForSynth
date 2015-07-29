@@ -46,11 +46,9 @@ function subscribe(rm) {
         }
         return rmids;
     }()));
-    //sendJSONmsg(this, 'instruments', activeInstruments[rm]);
-    //sendJSONmsg(this, 'notes', histories[rm]);
 }
 
-
+/*
 function unsubscribe(rm) {
     var ws = this;
     if (rm != ''){
@@ -60,6 +58,24 @@ function unsubscribe(rm) {
         console.log(ws.id + " is gone..." );
     }
 }
+*/
+function unsubscribe(rm) {
+    var ws = this;
+    console.log("unsubscribe from room = " + rm);
+    if ((rm != '') && (rm != undefined) && (rooms[rm] != undefined)){
+        console.log("Unsubscribe at time="  + Date.now() + ",  with " + rooms[rm].length + " members");
+        rooms[rm] = rooms[rm].filter(function (s) {return s !== ws;});
+
+        if ((rooms[rm] != undefined) && (rooms[rm].length===0)){ // if nobody is in the room
+            console.log("deleting room " + rm);
+            delete rooms[rm];
+        }
+        room = '';
+
+        console.log(ws.id + " is gone..." );
+    }
+}
+
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function genericBroadcast(m, data) {
@@ -94,12 +110,31 @@ function addToSoundbank(data) {
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/*
 function roomBroadcast(room, sender, name, data) {
     if (rooms[room] === undefined)
         return;
     var src = sender ? sender.id : 0;
     //if (sender !== null) console.log(name, 'from', src);
     rooms[room].forEach(function (ws) {if (ws !== sender) {sendJSONmsg(ws, name, data, src);}});
+}
+*/
+
+function roomBroadcast(room, sender, name, data) {
+    if (rooms[room] === undefined)
+        return;
+
+    var src = sender ? sender.id : 0;
+    //if (sender !== null) console.log(name, 'from', src);
+    rooms[room].forEach(function (ws) {
+        if (ws !== sender) {
+            if (ws.readyState === 1){
+                sendJSONmsg(ws, name, data, src);
+            } else {
+                console.log( "roomBroadcast: ws" + ws + " with ws.id =" + ws.id + " is not in ready state");
+            }
+        }
+    });
 }
 
 function sendJSONmsg(ws, name, data, source) {
@@ -163,6 +198,27 @@ wss.on('connection', function (ws) {
         callbacks['unsubscribe'].call(ws, ws.room);
     });
 });
+
+
+function getRoomList(){
+    rlist=[];
+    for (r in rooms){
+        if (r==='') continue;
+        if(rooms.hasOwnProperty(r)){
+            rlist.push(r);
+        }
+    }
+    console.log("getRoomList: " + rlist);
+    return rlist;
+}
+
+app.get(["/soundList", "/soundList/ModelDescriptors"],function(req, res){
+  var jsonObj;
+  var jsonList=[];
+  console.log("fetching from ModelDescriptors");
+  res.send({"jsonItems":   getRoomList()  }); // returns an array of room names
+});
+
 
 exports.server = server;
 

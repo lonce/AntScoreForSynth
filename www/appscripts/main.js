@@ -116,13 +116,16 @@ require(
 		var toggleSoundState=1;
 		toggleSoundButton.style.background='#005900';
 
+		var getScoreTime=function(){
+			return t_sinceOrigin;
+		}
 
 		var m_chatter=chatter(window.document.getElementById("publicChatArea"),
-			window.document.getElementById("myChatArea"));
+			window.document.getElementById("myChatArea"), getScoreTime);
 
 		//-----------------------------------------------------------------------------
 		//var newSoundSelector = window.document.getElementById("newSoundSelector")
-		soundSelect.setCallback("newSoundSelector", newSoundHandler);
+		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Pentatonic Tone"); // last arg is an (optional) default sound to load
 		function newSoundHandler(currentSMFactory) {
 			var model = soundSelect.getModelName();
 			m_agent && m_agent.setSoundSelector(soundSelect);
@@ -133,6 +136,8 @@ require(
 			}
 			comm.sendJSONmsg('addToSoundbank', [model]);
 		}
+
+
 
 		//-----------------------------------------------------------------------------
 
@@ -161,6 +166,22 @@ require(
 		function keyDown(e){
          		var keyCode = e.keyCode;
          		switch(keyCode){
+         			case 84:   //'T'
+         				if (e.altKey===true){
+         					e.preventDefault();
+         					radioSelection = "text"; // the radio button value attribute is "text"
+							setTab("textTab");
+							document.getElementById("radioText").checked=true;
+         				}
+         				break;
+         			case 77:  // 'M'
+         				if (e.altKey===true){
+         					e.preventDefault();
+         					radioSelection = "contour"; // the radio button value attribute is "contour"
+							setTab("contourTab");
+							document.getElementById("radioContour").checked=true;
+         				}
+         				break;
          			case 83:
          				if (e.ctrlKey==1){
          					//alert("control s was pressed");
@@ -207,19 +228,6 @@ require(
 
 		//radioContour.addEventListener("onclick", function(){console.log("radio Contour");});
 		var setTab=function(showTab){
-			// unshow whichever tab was perviuosly selected (in fact all others)
-			window.document.getElementById("contourTab").style.display="none";
-			window.document.getElementById("sprayTab").style.display="none";
-			window.document.getElementById("textTab").style.display="none";
-			window.document.getElementById("pitchTab").style.display="none";
-			window.document.getElementById("rhythmTab").style.display="none";
-			window.document.getElementById("chordTab").style.display="none";
-			window.document.getElementById("selectTab").style.display="none";
-
-			// now show the tabe that was selected with the radio buttons
-			// (these tabs provide the options for the selected mode)
-			window.document.getElementById(showTab).style.display="inline-block";
-
 
 			m_currentTab=showTab;
 			if (showTab != "selectTab"){
@@ -229,6 +237,22 @@ require(
 					displayElements[dispElmt].select(false);
 				}
 			}	
+			
+
+			// unshow whichever tab was perviuosly selected (in fact all others)
+			window.document.getElementById("contourTab").style.display="none";
+			window.document.getElementById("sprayTab").style.display="none";
+			window.document.getElementById("textTab").style.display="none";
+			window.document.getElementById("pitchTab").style.display="none";
+			window.document.getElementById("rhythmTab").style.display="none";
+			window.document.getElementById("chordTab").style.display="none";
+			window.document.getElementById("selectTab").style.display="none";
+
+			// now show the tab that was selected with the radio buttons
+			// (these tabs provide the options for the selected mode)
+			window.document.getElementById(showTab).style.display="inline-block";
+	
+
 		}
 
 		var m_pTab=pitchTabFactory();
@@ -361,7 +385,7 @@ require(
 	// For chatting
 		comm.registerCallback('chat', function (data, src){
 			console.log("got chat from src = " + src);
-			m_chatter.setText(src, data.text); 
+			m_chatter.setText(src, data.text, data.time); 
 		});
 
 
@@ -392,7 +416,6 @@ require(
 		}
 
 
-
 		var time2PxOLD=function(time, elapsedTime){ // time measured since timeOrigin
 			return nowLinePx+(time-elapsedTime)*pixelShiftPerMs;
 		}
@@ -411,6 +434,8 @@ require(
 		var nowishP = function(t){
 			if ((t > lastDrawTime) && (t <= t_sinceOrigin)) return true;
 		}
+
+
 
 
 		theCanvas.addEventListener("mousedown", onMouseDown, false);
@@ -581,6 +606,7 @@ require(
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		function initiateContour(x, y){
+			console.log("initateContour: radioSelection is " + radioSelection);
 			// don't draw contours if no sound is loaded (but allow text entry)
 			if((! soundSelect.loaded()) && (! (radioSelection==='text'))) return;
 
@@ -699,9 +725,12 @@ require(
 			}
 			last_mousemove_event=e;
 
+			console.log("mousedown: m_currentTab is " + m_currentTab);
+
 
 			if ((m_currentTab === "sprayTab") || (m_currentTab === "contourTab")) {
 				if (soundSelect.getModelName()===undefined){
+					console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
 					return;
 				}
 			}
@@ -770,7 +799,7 @@ require(
 				m_lastDisplayTick += 1000;
 				k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
 
-
+				
 				//console.log("displayElements length is " + displayElements.length)
 				if (displayElements.length >2){
 					var foo = 4;

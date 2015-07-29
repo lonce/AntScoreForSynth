@@ -54,9 +54,10 @@ define(
                 jsaSoundConfig.setMute(bool);
         }
 
-		soundSelectorInterface.setCallback=function(selector, user_cb){
+        // This is weird. "setCallback" is responsible for setting up the selector options???
+		soundSelectorInterface.setCallback=function(selector, user_cb, defaultSoundName){
 			soundSelectorElem = document.getElementById(selector);
-			makeSoundListSelector();
+			makeSoundListSelector(defaultSoundName);
 			m_cb=user_cb;
 			soundSelectorElem.addEventListener("change", soundChoice);
 		}
@@ -72,12 +73,9 @@ define(
 			return retval;
 		}
 
-
-
-
 		var useList=["AntScore"];
 		// Create the html select box using the hard-coded soundList above
-		function makeSoundListSelector() {
+		function makeSoundListSelector(defaultSoundName) {
 			var i;
 			var currOptionName;
 
@@ -88,6 +86,7 @@ define(
 
 				//alert("got descriptors");
 				var items = data.jsonItems;
+				var defaultItemIndex=0;
 				soundList=[];
 				//console.log("Yip! sound list is " + soundList);
 				soundSelectorElem.options.length=0;
@@ -98,9 +97,18 @@ define(
 						soundSelectorElem.add(new Option(currOptionName));
 
 						soundList.push(data.jsonItems[i]);
+
+						if (defaultSoundName && (defaultSoundName===currOptionName)){
+							defaultItemIndex = soundList.length;
+						}
 					}
-					soundSelectorElem.options[0].selected="true";
+					console.log("Got a list of  " + i + ", sounds models");
 				}
+					console.log("soundSelector has " + soundSelectorElem.options.length + " options");
+					soundSelectorElem.options[defaultItemIndex].selected="true";
+					if (defaultItemIndex != 0) {
+						soundChoice();
+					}
 
 			});
 		}
@@ -116,6 +124,7 @@ define(
 
 		// When a sound is selected from the drop-down selector
 		function soundChoice() {
+			console.log("in soundSelect: soundChoice");
 			m_loadedP=false;
 			var sb;
 			if (soundSelectorElem.selectedIndex <1) return;  // we added a "blank" to the selector list.
@@ -183,6 +192,7 @@ define(
 				}
 			);
 		}
+
 
 		return soundSelectorInterface;
 }
