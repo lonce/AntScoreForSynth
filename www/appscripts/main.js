@@ -465,9 +465,7 @@ require(
 		}
 
 
-		var time2PxOLD=function(time, elapsedTime){ // time measured since timeOrigin
-			return nowLinePx+(time-elapsedTime)*pixelShiftPerMs;
-		}
+
 		var time2Px=function(time){ // time measured since timeOrigin
 			return nowLinePx+(time-t_sinceOrigin)*pixelShiftPerMs;
 		}
@@ -519,7 +517,7 @@ require(
 				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
 
 				if (descYButton.toggleState === 1){
-					ty= m.y - m.y%descYInterval;
+					ty= m.y + descYInterval- m.y%descYInterval;
 				}
 
 				// var ty = (toggleYLockP===0)? m.y : yLockVal;
@@ -834,7 +832,7 @@ require(
 
 
 			if (descYButton.toggleState === 1){
-				y= m.y - m.y%descYInterval;
+				y= m.y + descYInterval - m.y%descYInterval;
 			}
 
 			if (toggleYLockP===1){

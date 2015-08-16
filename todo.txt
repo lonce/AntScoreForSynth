@@ -1,0 +1,17 @@
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Right now when a participant chooses a new sound, it fires off a 
+message to other participants to load that sound that they are ready
+when the gesture hits the play line, to play it:
+
+comm.registerCallback('addToSoundbank', function(data, src) {
+			console.log("add to soundbank for remote client " + data[0]);
+			soundSelect.loadSound(data[0],function(sfactory){
+				console.log("loaded sound for remote client")
+				soundbank.addSnd(data[0], sfactory, 12); // max polyphony 
+			});
+
+However, if the new participant joined AFTER the other selected a new sound,
+then the system crashes when the gesture tries to play at the now line.
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
