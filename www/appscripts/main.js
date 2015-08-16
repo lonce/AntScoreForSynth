@@ -8,15 +8,21 @@
 */
 
 require(
-	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentPlayer", "config", "userConfig", "chatter"],
+	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentManager", "config", "userConfig", "chatter"],
 
-	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentPlayer, config, userConfig, chatter) {
+	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentMan,  config, userConfig, chatter) {
 
-		var m_agent;
-		userConfig.report(function(){
+		//var m_agent;
+		//agentMan.registerAgent(agentPlayer(soundSelect), "my real agent");
+		agentMan.initialize(soundSelect);
+
+		userConfig.on("submit", function(){
 			if (userConfig.player === "agent"){
 				console.log("you will play with (or as) an agent");
-				m_agent=agentPlayer();
+				//m_agent=agentPlayer();
+				//m_agent && m_agent.setSoundSelector(soundSelect);
+				//agentMan.registerAgent(agentPlayer, "my real agent");
+
 			}
 
 			// unsubscribe to previous room, join new room
@@ -116,6 +122,49 @@ require(
 		var toggleSoundState=1;
 		toggleSoundButton.style.background='#005900';
 
+
+		var descXMsInterval; // =1000*descXSlider.value;
+		var descXSlider = window.document.getElementById("descXSlider");
+		descXSlider.oninput = function(e){
+			descXMsInterval =1000*descXSlider.value;
+			console.log("descxsliderchange");
+		}
+
+		var descYInterval;
+		var descYSlider = window.document.getElementById("descYSlider");
+		descYSlider.oninput = function(e){
+			descYInterval =theCanvas.height/descYSlider.value;
+		}
+
+
+		var descXButton = document.getElementById("descXButton");
+		descXButton.toggleState=0;
+		descXButton.style.background='#590000';
+		descXButton.onclick=function(){
+			descXButton.toggleState=(descXButton.toggleState+1)%2;
+			if (descXButton.toggleState===0){
+				descXButton.style.background='#590000';
+			} else {
+				descXButton.style.background='#005900';
+				descXMsInterval =1000*descXSlider.value;
+			}
+		}
+
+		var descYButton = document.getElementById("descYButton");
+		descYButton.toggleState=0;
+		descYButton.style.background='#590000';
+		descYButton.onclick=function(){
+			descYButton.toggleState=(descYButton.toggleState+1)%2;
+			if (descYButton.toggleState===0){
+				descYButton.style.background='#590000';
+			} else {
+				descYButton.style.background='#005900';
+			}
+		}
+
+
+
+
 		var getScoreTime=function(){
 			return t_sinceOrigin;
 		}
@@ -128,7 +177,7 @@ require(
 		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Pentatonic Tone"); // last arg is an (optional) default sound to load
 		function newSoundHandler(currentSMFactory) {
 			var model = soundSelect.getModelName();
-			m_agent && m_agent.setSoundSelector(soundSelect);
+			//agentMan.agent && agentMan.agent.setSoundSelector(soundSelect);
 
 			if (! model) return;
 			if(config.webkitAudioEnabled){
@@ -345,7 +394,7 @@ require(
 			console.log("server startTime = " + data[0] );
 
 			clearScore();
-			m_agent && m_agent.reset();
+			agentMan.agent && agentMan.agent.reset();
 			
 			timeOrigin=Date.now();
 			lastSendTimeforCurrentEvent= -Math.random()*sendCurrentEventInterval; // so time-synched clients don't all send their countour chunks at the same time. 
@@ -425,6 +474,11 @@ require(
 		var px2Time=function(px){  // relative to the now line
 			return (px-nowLinePx)/pixelShiftPerMs;
 		}
+
+		var px2TimeO=function(px){  // relative to origin
+			return t_sinceOrigin+(px-nowLinePx)/pixelShiftPerMs;
+		}
+
 		var pxTimeSpan=function(px){  //units of ms
 			return (px/pixelShiftPerMs);
 		}
@@ -459,8 +513,19 @@ require(
 			// Add to currently-in-progress mouse gesture if any drawing is going on ------------------
 			if (current_mgesture) {
 				var m = utils.getCanvasMousePosition(theCanvas, last_mousemove_event);
-				var tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
-				var ty = (toggleYLockP===0)? m.y : yLockVal;
+				var tx=m.x;
+				var ty=m.y;
+
+				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+
+				if (descYButton.toggleState === 1){
+					ty= m.y - m.y%descYInterval;
+				}
+
+				// var ty = (toggleYLockP===0)? m.y : yLockVal;
+				if (toggleYLockP===1) {
+					ty = yLockVal;
+				}
 			
 
 				if (current_mgesture && current_mgesture.type === 'mouseContourGesture'){
@@ -490,6 +555,7 @@ require(
  			// Draw scrolling sprockets--
  			context.fillStyle = "#999999";
  			var sTime = (elapsedtime+scoreWindowTimeLength*(2/3))- (elapsedtime+scoreWindowTimeLength*(2/3))%sprocketInterval;
+ 			//console.log("sprocket stime: " + sTime);
 			var sPx= time2Px(sTime);
 			//console.log("t since origin is " + t_sinceOrigin + ", and sTime is " + sTime);
 			while(sPx > 0){ // loop over sprocket times within score window
@@ -506,15 +572,53 @@ require(
 			}
 			context.font="9px Arial";
 
+			// Draw DescX lines if necessary
+			if (descXButton.toggleState===1){
+				context.lineWidth =1;
+				context.strokeStyle = "#333";
+				sTime = (elapsedtime+scoreWindowTimeLength*(2/3))- (elapsedtime+scoreWindowTimeLength*(2/3))%(descXMsInterval);
+				//console.log("descX sTime: " + sTime);
+				//console.log(" ");
+				var start_sPx= time2Px(sTime);
+				sPx=start_sPx;
+
+				var loopCount=0;
+				while(sPx > 0){ // loop over sprocket times within score window			
+					context.beginPath();					
+					context.moveTo(sPx, 0);
+					context.lineTo(sPx, 1*theCanvas.height);
+					context.stroke();
+					context.closePath();
+
+					loopCount++;
+					sPx=start_sPx-loopCount*pixelShiftPerMs*descXMsInterval;
+					//sPx-=pixelShiftPerMs*descXMsInterval;
+				}
+			}
+			/*
 			//------------
 			//draw track lines
-			context.strokeStyle = "#555555";	
+			context.strokeStyle = "#444";	
 			context.lineWidth =1;			
 			for (var i=1;i<numTracks;i++){
 				context.beginPath();
 				context.moveTo(0, trackY[i]);
 				context.lineTo(1*theCanvas.width, trackY[i]);
 				context.stroke();
+			}
+			*/
+			// Draw DescY lines if necessary
+			if (descYButton.toggleState===1){
+				context.lineWidth =1;
+				context.strokeStyle = "#333";
+				descYInterval=1*theCanvas.height / numTracks;
+				descYInterval=1*theCanvas.height/descYSlider.value;
+				for (var i=1;i<descYSlider.value;i++){
+					context.beginPath();
+					context.moveTo(0, i*descYInterval);
+					context.lineTo(1*theCanvas.width, i*descYInterval);
+					context.stroke();
+				}
 			}
 
 
@@ -715,14 +819,30 @@ require(
 			event.preventDefault();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
 
+			// by default,
+			var x=m.x;
+			var y=m.y;
 
-			var x= (toggleTimeLockP===0) ? m.x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
-			var y = m.y;
+			if (descXButton.toggleState === 1){
+				x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
+				console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
+				//console.log("mouse time is " + px2Time(m.x) + ", mod time is " + px2Time(m.x)%descXMsInterval);
+			}
 
+			// time lock takes prcedence
+			x= (toggleTimeLockP===0) ? x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
+
+
+			if (descYButton.toggleState === 1){
+				y= m.y - m.y%descYInterval;
+			}
 
 			if (toggleYLockP===1){
 				yLockVal=m.y
 			}
+
+
+
 			last_mousemove_event=e;
 
 			console.log("mousedown: m_currentTab is " + m_currentTab);
@@ -791,7 +911,7 @@ require(
 			
 			drawScreen(t_sinceOrigin);
 
-			m_agent && m_agent.tick(t_sinceOrigin, displayElements);
+			agentMan.agent && agentMan.agent.tick(t_sinceOrigin, displayElements);
 
 			// create a display clock tick every 1000 ms
 			while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...

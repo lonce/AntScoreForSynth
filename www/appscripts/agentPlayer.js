@@ -50,9 +50,10 @@ define(
                 return m_gesture;
         }
 
-        return function (){
+        return function (sselector){
 
             var agent={};
+            agent.displayName="Agent Bonehead"
  
             var m_actInterval=5000;  // make a new gester this often
             var clockTimeOfLastAction=2000;
@@ -77,6 +78,7 @@ define(
                 m_soundSelector=s;
             }
 
+            sselector && agent.setSoundSelector(sselector);
             return agent;
         }
     }

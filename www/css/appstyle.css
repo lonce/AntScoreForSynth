@@ -233,7 +233,6 @@ color:white;
 #soundToggleButtonDiv {
 	float: left; 
 	padding: 3%;
-
 }
 
 #soundToggleButton {
@@ -313,5 +312,29 @@ color:white;
 	border:2px solid #0000FF;
 }
 
+#descXDivId,#descYDivId{
+		padding: 3%;
+}
+#descXButton{
+	width: 20%;
+	float: left;
+	margin: 1%;
+	color: white;
+}
+#descXSlider{
+	width:75%;
+	float: left;
+	margin: 1%;
+}
+#descYButton{
+	width: 20%;
+	float: left;
+	margin: 1%;
+	color: white;
+}
+#descYSlider{
+	width:75%;
+	float: left;
+	margin: 1%;
 
-
+}

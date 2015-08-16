@@ -16,8 +16,8 @@ require.config({
 				alert("This page cannot be run as a file, but must be served from a server (e.g. animatedsoundworks.com:8001, or localhost:8001)." );
 			}
 			// jsaSound server is hardcoded to port 8001 (on the same server as jsaBard - or from animatedsoundworks)
-				var host = "http://"+window.document.location.hostname + ":8001";
-				//var host = "http://animatedsoundworks.com:8001";
+				//var host = "http://"+window.document.location.hostname + ":8001";
+				var host = "http://animatedsoundworks.com:8001";
 				//alert("will look for sounds served from " + host);
 				return (host );
 			})(),

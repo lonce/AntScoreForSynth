@@ -1,80 +1,39 @@
 /*  Mapps touch events to mouse events.
 Just include this file in a require module, no need to call anything. 
 */
-
+require.config({
+});
 define(
-  ["jsaSound/jsaModels/jsaMp3"],
-  function(sndFactory){
+  ["jsaSound/jsaModels/jsaMp3", "mods/gateKeeperFactory", "utils"],
+  function(sndFactory, loadGateFactory, utils){
 
+    // object to be returned by this module
     var uconfig = {
       "player": undefined,
-      "room": undefined
+      "room": undefined,
+      "gatekey": (gateKeeperFactory(["resourceLoaded"], // after all keys are set(), function will execute
+          function(){
+            // replace "loading" with "All ready" and make the submit button available
+            legend.innerHTML = "Anticipatory Score";
+            inner_div.appendChild(submit_btn);
+          })),
+      "report": function(){}
     };
 
-    // This is a click sound which get the iOs sound flowing
-    var okSound=sndFactory();
-    okSound.setParam("Sound URL", "resources/click.mp3");
-    okSound.setParam("Gain", 1);
 
-
-    uconfig.report = function(c_id) {
-      var form = document.createElement("form", "report_form");
-      form.id = "report_form";
-      form.method = "post";
-      form.action = "index.php?mode=post_comment";
-   
-      var reply_place = document.createElement("div");
-      reply_place.id = "overlay";
-      var inner_div = document.createElement("div"), button_close = document.createElement("button");
-      button_close.id = "upprev_close";
-      button_close.innerHTML = "x";
-      button_close.onclick = function () {
-          var element = document.getElementById('overlay');
-          element.parentNode.removeChild(element);
-      };
-      inner_div.appendChild(button_close);
-   
-      var legend = document.createElement("legend");
-      legend.id="legend";
-      legend.innerHTML = "Choose one:";
-      /*
-      form.appendChild(legend);
-      */
-
-      var input1 = document.createElement("input");
-      input1.type = "radio";
-      input1.checked = "true";
-      input1.id = "humanID";
-      input1.value = "human";
-      input1.name = "options";
-      //input1.style.visibility = 'hidden';
-      var radio_label1 = document.createElement("label");
-      radio_label1.htmlFor = "humanID";
-      radio_label1_text = "Play As Human";
-      radio_label1.appendChild(document.createTextNode(radio_label1_text));
-      //radio_label1.style.visibility = 'hidden';
-      form.appendChild(input1);
-      form.appendChild(radio_label1);
-      
-
-      var input2 = document.createElement("input");
-      input2.type = "radio";
-      input2.id = "agentID";
-      input2.value = "agent";
-      input2.name = "options";
-      //input2.style.visibility = 'hidden';
-      var radio_label2 = document.createElement("label");
-
-      radio_label2.htmlFor = "agentID";
-      radio_label2_text = "Play With Agent";
-      radio_label2.appendChild(document.createTextNode(radio_label2_text));
-      //radio_label2.style.visibility = 'hidden';
-      
-      form.appendChild(input2);
-      form.appendChild(radio_label2);
-      
-
-      var roomdiv = document.createElement("roomdiv");
+    var msgbox = document.getElementById("msg");
+    var overlay_div = document.createElement("div");
+      overlay_div.id = "overlay";
+    var inner_div = document.createElement("div");
+    var button_close = document.createElement("button");
+    var submit_btn = document.createElement("input");
+      submit_btn.type = "button";
+      submit_btn.className = "submit";
+      submit_btn.value = "Submit";
+    var legend = document.createElement("legend");
+ 
+ //++++++++++++++++++++++++++++++++++++++++++++++++
+  var roomdiv = document.createElement("roomdiv");
       roomdiv.type="div";
       roomdiv.id="roomdiv";
       roomdiv.innerHTML="Join a room?";
@@ -93,48 +52,68 @@ define(
 
       roomdiv.appendChild(input3);
 
+ //++++++++++++++++++++++++++++++++++++++++++++++++
 
-   
-      var submit_btn = document.createElement("input", "the_submit");
-      submit_btn.type = "submit";
-      submit_btn.className = "submit";
-      submit_btn.value = "Submit";
-      form.appendChild(submit_btn);
-   
-      submit_btn.onclick = function () {
-          var checked = false, formElems = this.parentNode.getElementsByTagName('input');
-          for (var i = 0; i < formElems.length; i++) {
-              if (formElems[i].type === 'radio' && formElems[i].checked === true) {
-                  checked = true;
-                  var el = formElems[i];
-                  break;
-              }
-          }
-          if (!checked) return false;
-
-           okSound.setParam("play", 1);
-
-          uconfig.player = el.value;
+    // The real reason for this sound is that Apple devices require a user-initiated sound before the program can generate sound on its own
+    var okSound=sndFactory();
+    
+    //uconfig.report = function(c_id) {
+      button_close.id = "upprev_close";
+      button_close.innerHTML = "x";
+      button_close.onclick = function () {
           var element = document.getElementById('overlay');
           element.parentNode.removeChild(element);
-          c_id(); // call the callback when we have our info
+      };
+      inner_div.appendChild(button_close);
+   
+      legend.id="legend";
+      legend.innerHTML = "Performance <br> Loading ...";
+      inner_div.appendChild(legend);
 
-          //var poststr = "c_id=" + c_id + "&reason=" + encodeURI(el.value);
-          //alert(poststr);
+      inner_div.appendChild(roomdiv);
+    // This is a click sound which get the iOs sound flowing
+    okSound.on("resourceLoaded",  function(){
+      uconfig.gatekey.set("resourceLoaded");
+    });
+    okSound.setParam("Sound URL", "http://animatedsoundworks.com:8001/jsaResources/sounds/click.mp3");
+
+
+/*
+      var buttTimer=setTimeout(function(){
+        console.log("autoclick submit button");
+        submit_btn.click()}, 3000);
+*/
+
+      submit_btn.onclick = function () {
+          //if (buttTimer) {clearTimeout(buttTimer);}
+          //var checked = false, formElems = this.parentNode.getElementsByTagName('input');
+
+          //alert("click");
+          okSound.setParam("Gain", 1);
+          okSound.setParam("play", 1);
+          //msgbox.value="click played";
+
+          var element = document.getElementById('overlay');
+          if (! element) {
+            console.log("got click on nonexistent element .... autoclick?");
+            return;
+          }
+          element.parentNode.removeChild(element);
+
+          uconfig.fire("submit");
+          //c_id(); // call the callback when we have our info
           return false;
       }
    
-      form.appendChild(roomdiv);
-      inner_div.appendChild(form);
-      reply_place.appendChild(inner_div);
-
-   
+      overlay_div.appendChild(inner_div);
+      
       // Here, we must provide the name of the parent DIV on the main HTML page
       var attach_to = document.getElementById("wrap"), parentDiv = attach_to.parentNode;
-      parentDiv.insertBefore(reply_place, attach_to);
+      parentDiv.insertBefore(overlay_div, attach_to);
    
-    }
+//    }
   
+  utils.eventuality(uconfig); // so that we can fire an event when the SUBMIT button is pushed
   return uconfig;
 
   }

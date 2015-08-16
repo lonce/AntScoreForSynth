@@ -180,11 +180,19 @@ function emitPulse() {
 }
 setInterval(emitPulse, pulsePeriod);
 
-
+// This works to allow x-domain in jsaSound - doesn't do the trick here tho. 
+// If I run AntSynth locally, the client complains about requests to animatedsoundworks...
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+});
 //****************************************************************************
 app.use(express.static(__dirname + "/www"));
 server.listen(k_portnum);
 console.log("Connected and listening on port " + k_portnum);
+
+
 
 wss.on('connection', function (ws) {
     ws.id = id++;
