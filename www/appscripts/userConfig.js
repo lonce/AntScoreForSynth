@@ -10,7 +10,7 @@ define(
     // object to be returned by this module
     var uconfig = {
       "player": undefined,
-      "room": undefined,
+      "room": [],
       "gatekey": (gateKeeperFactory(["resourceLoaded"], // after all keys are set(), function will execute
           function(){
             // replace "loading" with "All ready" and make the submit button available
@@ -34,23 +34,52 @@ define(
  
  //++++++++++++++++++++++++++++++++++++++++++++++++
   var roomdiv = document.createElement("roomdiv");
-      roomdiv.type="div";
-      roomdiv.id="roomdiv";
-      roomdiv.innerHTML="Join a room?";
+  roomdiv.type="div";
+  roomdiv.id="roomdiv";
+  roomdiv.innerHTML="Join a room?";
 
+  var roomSelector = document.createElement("select");
+  roomSelector.multiple=true;
+  roomSelector.type="select";
+  roomSelector.id="roomSelect";
 
-      var input3 = document.createElement("select");
-      input3.type="select";
-      input3.id="roomSelect";
-      input3.options[0]=new Option("Play Offline", "", true, false);
-      input3.options[1]=new Option("Default Room", "defaultRoom", false, false);
+  roomSelector.options[0]=new Option("Play Offline", "", false, true);
+ //roomSelector.options[1]=new Option("Default Room", "defaultRoom", true, true);
 
-      input3.addEventListener('change', function(e) {
-          uconfig.room  = e.currentTarget.value;
-          console.log("uconfig.room = " + uconfig.room);
-      });
+  utils.getJSON("/roomList", function(data){
+      var opt;
+      if (data.jsonItems.length > 0){
+        for(var i=0;i<data.jsonItems.length;i++){
+          console.log("rooms from server: " + data.jsonItems[i]);
+          opt=document.createElement("option");
+          opt.text=data.jsonItems[i];
+          opt.value=data.jsonItems[i];
+          roomSelector.add(opt)
+        }
+      }
+    });
 
-      roomdiv.appendChild(input3);
+  
+  roomSelector.options[roomSelector.options.length]=new Option("Create a Room", "makeNewRoom", false);
+
+  //roomSelector.options[2]=new Option("Create a Room", prompt("Enter a room name", "Room"+Math.floor(9999*Math.random()));
+
+  roomSelector.addEventListener('change', function(e) {
+    var newRoom;
+      //uconfig.room  = e.currentTarget.value;
+      //console.log("uconfig.room = " + uconfig.room);
+      if (e.currentTarget.value === "makeNewRoom"){
+        newRoom=prompt("Enter a room name", "Room"+Math.floor(9999*Math.random()));
+        if (newRoom != null){
+          roomSelector.options[roomSelector.options.length-1]=new Option(newRoom, newRoom, false, true);
+          roomSelector.options[roomSelector.options.length]=new Option("Create a Room", "makeNewRoom", false, false);
+        }
+        //roomSelector.options[roomSelector.options.length-1].selected=false;
+      }
+      
+  });
+
+  roomdiv.appendChild(roomSelector);
 
  //++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -92,6 +121,12 @@ define(
           okSound.setParam("Gain", 1);
           okSound.setParam("play", 1);
           //msgbox.value="click played";
+
+          //console.log(roomSelector.selectedOptions);
+          for(var i=0;i<roomSelector.selectedOptions.length; i++){
+            uconfig.room.push(roomSelector.selectedOptions[i].value);
+          }
+          console.log("selected options include " + uconfig.room);
 
           var element = document.getElementById('overlay');
           if (! element) {

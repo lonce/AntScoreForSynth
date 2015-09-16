@@ -15,3 +15,13 @@ However, if the new participant joined AFTER the other selected a new sound,
 then the system crashes when the gesture tries to play at the now line.
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+2015.09.15 ------
+Fix the STATE in the server code.
+The idea is to have the server maintain state, so that when  new member joins, he can
+get all the info necessary to jump in to the middle of a score.
+I started experimenting with just keeping the current sound selections for sources, but
+   array isn't the right data structure for this (what if there are just 2 players with 
+   very high ide numbers?)
+
+Fix the room joining thing - right now, I don't think you can join 2 rooms yet.
+

@@ -26,11 +26,18 @@ require(
 			}
 
 			// unsubscribe to previous room, join new room
-			if (myRoom != undefined) comm.sendJSONmsg("unsubscribe", [myRoom]);
+			if (myRoom != []) {
+				myRoom.forEach(function(r){
+					comm.sendJSONmsg("unsubscribe", [r]);
+				});
+			}
     		myRoom  = userConfig.room;
-			if (myRoom != undefined) {
-				console.log("userConfig.report: joing a room named " + myRoom); 
-				comm.sendJSONmsg("subscribe", [myRoom]);
+			if (myRoom != []) {
+				myRoom.forEach(function(r){
+					console.log("userConfig.report: joing room(s) named " + r); 
+					comm.sendJSONmsg("subscribe", [r]);
+					
+				});
 				// Tell everybody in the room to restart their timers.
 				comm.sendJSONmsg("startTime", []);
 			} 
@@ -43,7 +50,7 @@ require(
 		var serverTimeOrigin=0;
 		var serverTime=0;
 		var myID=0;
-		var myRoom=undefined;
+		var myRoom=[];
 		var displayElements = [];  // list of all items to be displayed on the score
 
 		var findElmt=function(objArray,src,id){
@@ -124,9 +131,11 @@ require(
 
 
 		var descXMsInterval; // =1000*descXSlider.value;
+		var descXPxInterval;
 		var descXSlider = window.document.getElementById("descXSlider");
 		descXSlider.oninput = function(e){
 			descXMsInterval =1000*descXSlider.value;
+			descXPxInterval = pixelShiftPerMs*descXMsInterval;
 			console.log("descxsliderchange");
 		}
 
@@ -147,6 +156,7 @@ require(
 			} else {
 				descXButton.style.background='#005900';
 				descXMsInterval =1000*descXSlider.value;
+				descXPxInterval = pixelShiftPerMs*descXMsInterval;
 			}
 		}
 
@@ -314,16 +324,7 @@ require(
 		var m_lastSprayEvent = 0; // time (rel origin) of the last spray event (not where on the score, but when it happened. 
 
 
-		//---------------------------------------------------------------------------
-		// init is called just after a client navigates to the web page
-		// 	data[0] is the client number we are assigned by the server.
-		comm.registerCallback('init', function(data) {
-			//pong.call(this, data[1]);
-			myID=data[0];
-			console.log("Server acknowledged, assigned me this.id = " + myID);
-			colorIDMap[myID]="#00FF00";
 
-		});
 		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of contGesture, and src is the id of the clicking client
 		comm.registerCallback('contGesture', function(data, src) {
@@ -336,10 +337,10 @@ require(
 		comm.registerCallback('beginGesture', function(data, src) {
 			var fname;
 
-			//console.log("new begin gesture from src " + src + ", and gID = " + data.gID);
+			console.log("new begin gesture from src " + src + ", and gID = " + data.gID);
 			current_remoteEvent[src]=scoreEvent(data.type);
 			current_remoteEvent[src].gID=data.gID;
-
+			current_remoteEvent[src].color=colorIDMap[src];
 			// automatically fill any fields of the new scoreEvent sent
 			for (fname in data.fields){
 				current_remoteEvent[src][fname]=data.fields[fname];
@@ -406,18 +407,32 @@ require(
 		// Just make a color for displaying future events from the client with the src ID
 		comm.registerCallback('newmember', function(data, src) {
 			console.log("new member : " + src);
-			colorIDMap[src]=utils.getRandomColor1(100,255,0,120,100,255);
+			colorIDMap[src]=utils.getRandomColor1(100,255,0,120,100,255);			
 		});
 		//---------------------------------------------------------------------------
-		// src is meaningless since it is this client
+		// a list of all members including yourself
 		comm.registerCallback('roommembers', function(data, src) {
-			if (data.length > 1) 
-					console.log("there are other members in this room!");
-			for(var i=0; i<data.length;i++){
-				if (data[i] != myID){
-					colorIDMap[data[i]]=utils.getRandomColor1(100,255,0,120,100,255);
-				}
-			}
+			console.log("In rommembers callback, src (to set myID is " + src);
+			myID=src; /// THIS IS WHERE WE FIRST GET IT.
+			colorIDMap[myID]="#00FF00"; // I am always green
+			data.forEach(function(m){
+				if (m != myID){
+					console.log("... " + m + " is also in this room");
+					colorIDMap[m]=utils.getRandomColor1(100,255,0,120,100,255);
+				} 
+			});
+
+		});
+
+		//---------------------------------------------------------------------------
+		// Server calls this before weve registered callbacks. 
+		// MOVED myID assignment into ROMMEMBERS callback
+		comm.registerCallback('init', function(data) {
+			//pong.call(this, data[1]);
+			myID=data[0];
+			console.log("***********Server acknowledged, assigned me this.id = " + myID);
+			colorIDMap[myID]="#00FF00";
+
 		});
 
 
@@ -516,6 +531,11 @@ require(
 
 				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x): elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
 
+				//Descretize the new point in time and height
+				if (descXButton.toggleState === 1){ 
+					tx = px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval;
+				}
+
 				if (descYButton.toggleState === 1){
 					ty= m.y + descYInterval- m.y%descYInterval;
 				}
@@ -529,6 +549,31 @@ require(
 				if (current_mgesture && current_mgesture.type === 'mouseContourGesture'){
 					// drawn contours must only go up in time
 					if (tx > current_mgesture.d[current_mgesture.d.length-1][0]){
+
+						// If either y or x is descrete, no gliding - CREATE EXTRA POINT TO EXTEND OLD ONE
+						if ((descYButton.toggleState === 1) ||  (descXButton.toggleState === 1)){
+							var interx = tx;
+							var intery = ty;
+
+							if (descYButton.toggleState === 1 ){ // if descrete in y, extend the old x
+								interx = current_mgesture.d[current_mgesture.d.length-1][0];
+								console.log("discrete in y - extend x at " + (Date.now()-timeOrigin));
+							}
+							if (descXButton.toggleState === 1 ){ // if descrete in x, extend the old y
+								intery = current_mgesture.d[current_mgesture.d.length-1][1];
+								console.log("discrete in x - extend y at " + (Date.now()-timeOrigin));
+							}
+							// if descrete in BOTH, etra point needs to be at the descritized y 
+							if ((descYButton.toggleState === 1) &&  (descXButton.toggleState === 1)){
+								intery = ty; // so that new point extends back to last descretized x value
+							}
+
+
+							current_mgesture.d.push([interx, intery, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
+							current_mgesture_2send.d.push([interx, intery, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
+						}
+
+						// after extending previous point, add the new point
 						current_mgesture.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 					}
@@ -708,7 +753,7 @@ require(
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		function initiateContour(x, y){
-			console.log("initateContour: radioSelection is " + radioSelection);
+			//console.log("initateContour: radioSelection is " + radioSelection);
 			// don't draw contours if no sound is loaded (but allow text entry)
 			if((! soundSelect.loaded()) && (! (radioSelection==='text'))) return;
 
@@ -779,6 +824,7 @@ require(
 			current_mgesture.updateMinTime();
 			current_mgesture.updateMaxTime();
 			current_mgesture.s= myID;
+			console.log("setting current_mgesture.s to " + myID);
 			current_mgesture.color="#00FF00";
 			displayElements.push(current_mgesture);
 		}
@@ -799,7 +845,7 @@ require(
 			current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
 			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
-			if (myRoom != undefined) {
+			if (myRoom != []) {
 				//console.log("sending event");
 				if (current_mgesture_2send){
 					if (current_mgesture_2send.d.length > 0){
@@ -823,7 +869,7 @@ require(
 
 			if (descXButton.toggleState === 1){
 				x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
-				console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
+				//console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
 				//console.log("mouse time is " + px2Time(m.x) + ", mod time is " + px2Time(m.x)%descXMsInterval);
 			}
 
@@ -843,7 +889,7 @@ require(
 
 			last_mousemove_event=e;
 
-			console.log("mousedown: m_currentTab is " + m_currentTab);
+			//console.log("mousedown: m_currentTab is " + m_currentTab);
 
 
 			if ((m_currentTab === "sprayTab") || (m_currentTab === "contourTab")) {
@@ -929,7 +975,7 @@ require(
 			//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
 			if ((current_mgesture_2send!=undefined) && ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval)){
 				//console.log("tick " + t_sinceOrigin);
-				if (myRoom != undefined) {
+				if (myRoom != []) {
 					//console.log("sending event");
 					if (current_mgesture_2send.d.length > 0)
 						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);

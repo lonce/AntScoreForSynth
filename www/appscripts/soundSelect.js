@@ -102,7 +102,7 @@ define(
 							defaultItemIndex = soundList.length;
 						}
 					}
-					console.log("Got a list of  " + i + ", sounds models");
+					//console.log("Got a list of  " + i + ", sounds models");
 				}
 					console.log("soundSelector has " + soundSelectorElem.options.length + " options");
 					soundSelectorElem.options[defaultItemIndex].selected="true";

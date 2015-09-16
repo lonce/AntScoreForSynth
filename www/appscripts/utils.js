@@ -134,5 +134,24 @@ define(
                 return that;
             }
 
+            utils.getJSON=function(url, f, ef){
+                var request = new XMLHttpRequest();
+                request.open('GET', url, true);
+
+                request.onload=function(data){
+                    if (request.status >= 200 && request.status < 400) {
+                        console.log("REQUEST SUCCESS")
+                        var data = JSON.parse(request.responseText);
+                        f(data);
+                    } else {
+                        console.log("We reached our target server, but it returned an error");
+
+                    }
+                }
+                request.onerror=ef;
+                request.send();
+            };
+
+
             return utils;
 });

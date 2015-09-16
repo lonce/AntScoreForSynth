@@ -34,14 +34,13 @@ registerCallback('addToSoundbank', addToSoundbank);
 
 // Note: for all functions used as callbacks, "this" will be a socket passed to the .call()
 function subscribe(rm) {
-    this.room.push(rm);
-
+    this.room = rm;
     if (rooms[rm] === undefined)
         rooms[rm] = [this];
     else
         rooms[rm].push(this);
 
-    roomBroadcast(rm, this, 'newmember', [this.id]);
+    roomBroadcast(this.room, this, 'newmember', [this.id]);
     console.log("new subscription to room " + rm);
 
     sendState(this);
@@ -52,7 +51,7 @@ function subscribe(rm) {
             rmids.push(rooms[rm][i].id);
         }
         return rmids;
-    }()), this.id);
+    }()));
 }
 
 /*
@@ -86,56 +85,37 @@ function unsubscribe(rm) {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function genericBroadcast(m, data) {
-    var that=this;
-    this.room.forEach(function(r){
-        roomBroadcast(r, that, m, data);
-    });
-    
+    roomBroadcast(this.room, this, m, data);
 }
 
 // basic data exchange method for responding to one socket, sending to rest
 function contGesture(data) {
-    var that=this;
-    this.room.forEach(function(r){
-        roomBroadcast(r, that, 'contGesture', data);
-    });
+    roomBroadcast(this.room, this, 'contGesture', data);
 }
 
 // basic data exchange method for responding to one socket, sending to rest
 function beginGesture(data) {
-    var that=this;
-    this.room.forEach(function(r){
-        //console.log("In beginGesture, my id is " + that.id);
-        roomBroadcast(r, that, 'beginGesture', data);
-    });
+    roomBroadcast(this.room, this, 'beginGesture', data);
 }
 
 
 // basic data exchange method for responding to one socket, sending to rest
 function endGesture(data) {
-    var that=this;
-    this.room.forEach(function(r){
-        roomBroadcast(r, that, 'endGesture', data);
-    });      
+    roomBroadcast(this.room, this, 'endGesture', data);
 }
 
 // When 'ere a client sends this message, the server sends out a new time to all room members
 function startTime() {
     var JStime = Date.now();
-    this.room.forEach(function(r){
-        roomBroadcast(r, 0, 'startTime', [JStime]); // 0 sender sends to all members in a room
-    });    
+    roomBroadcast(this.room, 0, 'startTime', [JStime]); // 0 sender sends to all members in a room
 }
 
 // basic data exchange method for responding to one socket, sending to rest
 function addToSoundbank(data) {
-    var that=this;
-    this.room.forEach(function(r){
-        roomBroadcast(r, that, 'addToSoundbank', data);
-        console.log("Set state " + that.id + " = " + data);
-        state.currentSound[that.id]=data;
-        console.log("just set state, and state.currentSound.lenght is " + state.currentSound.length);
-    });    
+    roomBroadcast(this.room, this, 'addToSoundbank', data);
+    console.log("Set state " + this.id + " = " + data);
+    state.currentSound[this.id]=data;
+    console.log("just set state, and state.currentSound.lenght is " + state.currentSound.length);
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -153,8 +133,8 @@ function roomBroadcast(room, sender, name, data) {
     if (rooms[room] === undefined)
         return;
 
-    var src = sender ? sender.id : 0; // 0 means from server - send to all members in a room
-    //if (sender !== null) console.log("roombroadcast: " + name +  ' from sender ' +  sender + " with id = " + src);
+    var src = sender ? sender.id : 0;
+    //if (sender !== null) console.log(name, 'from', src);
     rooms[room].forEach(function (ws) {
         if (ws !== sender) {
             if (ws.readyState === 1){
@@ -180,7 +160,6 @@ function sendJSONmsg(ws, name, data, source) {
 }
 
 function receiveJSONmsg(data, flags) {
-    //console.log("recevieJSONmessge, this.id is " + this.id);
     var obj;
     try {
         obj = JSON.parse(data);
@@ -194,10 +173,10 @@ function receiveJSONmsg(data, flags) {
 
     //callbacks[obj.n].call(this, obj.d);
     if (callbacks[obj.n]){
-        //console.log("callback: " + obj.n);
+        console.log("callback: " + obj.n);
         callbacks[obj.n].call(this, obj.d);
     } else {
-        //console.log("generic callback: " + obj.n);
+        console.log("generic callback: " + obj.n);
         genericBroadcast.call(this, obj.n, obj.d);
     }
 
@@ -237,15 +216,12 @@ wss.on('connection', function (ws) {
     ws.id = id++;
     console.log("got a connection, assigning ID = " + ws.id);
     ws.on('message', receiveJSONmsg.bind(ws));
-    ws.room = [];
-    console.log("send init message to " + ws + ", with id = " + ws.id);
+    ws.room = '';
     sendJSONmsg(ws, 'init', [ws.id, Date.now()]);
     //sendRooms.call(ws);
 
-    ws.on('close', function() { 
-        ws.room.forEach(function(r){
-            callbacks['unsubscribe'].call(ws, r);
-        });
+    ws.on('close', function() {        
+        callbacks['unsubscribe'].call(ws, ws.room);
     });
 });
 
