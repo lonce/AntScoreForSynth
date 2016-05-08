@@ -212,9 +212,14 @@ function emitPulse() {
     var JStime = Date.now();
     var rm;
     for (rm in rooms){
-        rooms[rm].forEach(function (ws) {
-            sendJSONmsg(ws, 'metroPulse', [JStime], 0);
-        });
+        if (rm === '') continue;
+        if (rooms.hasOwnProperty(rm)){
+            rooms[rm].forEach(function (ws) {
+                sendJSONmsg(ws, 'metroPulse', [JStime], 0);
+            });
+        } else {
+            console.log("No problem: rooms has no property " + rm);
+        }
     }
 }
 setInterval(emitPulse, pulsePeriod);
