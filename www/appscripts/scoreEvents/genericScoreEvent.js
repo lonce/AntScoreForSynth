@@ -22,6 +22,8 @@ define(
             selectedP: false,
             gID: gID_counter++,
 
+            sendData : {type: i_type, d: []},//, s: myID}, // a list of [t,y,z,{}] points to send to other participants; emptied after every send. 
+
             "comm": comm,
 
 
@@ -128,6 +130,13 @@ define(
             // override this method to provide fields not shared with other Events
             getKeyFields: function(){
                return {};
+            },
+
+            addEvent: function(t,y,z,eobj){
+               var ne = [t,y,z];
+               eobj && ne.push(eobj);
+               genEvent.d.push(ne);
+               genEvent.sendData.d.push(ne);
             }
 
       };

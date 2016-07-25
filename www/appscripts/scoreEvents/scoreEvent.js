@@ -1,6 +1,6 @@
 define(
-   ["scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent", "scoreEvents/genericScoreEvent"],
-   function (pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, genericScoreEvent) {
+   ["scoreEvents/pitchEvent", "scoreEvents/rhythmEvent", "scoreEvents/chordEvent",  "scoreEvents/contourEvent", "scoreEvents/sprayEvent", "scoreEvents/textEvent",  "scoreEvents/phraseEvent",  "scoreEvents/genericScoreEvent"],
+   function (pitchEvent, rhythmEvent, chordEvent, contourEvent, sprayEvent, textEvent, phraseEvent, genericScoreEvent) {
       return function (i_type, arg){
  
          switch(i_type){
@@ -21,6 +21,9 @@ define(
                break;
             case "textEvent":
                return textEvent(arg);
+               break;
+            case "phraseEvent":
+               return phraseEvent(arg);
                break;
             default: 
          }
