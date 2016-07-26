@@ -57,9 +57,12 @@ define(
           }
         }
         m_scoreEvent.d.push(ne);
+        //this.updateMaxTime();
+        m_scoreEvent.sendData.d.push(ne);
        }
 
-
+       console.log("set large maxtime")
+    m_scoreEvent.updateMaxTime(Number.MAX_SAFE_INTEGER); // because we allow spaces between events in a phraseGesture
 		return m_scoreEvent;
 
      }

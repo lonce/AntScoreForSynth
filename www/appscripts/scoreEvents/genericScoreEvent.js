@@ -10,7 +10,7 @@ define(
          var genEvent={
             type: i_type || null,            // String identifying gesture type
             i: null,                         // some types use indexes to identify the display element to use (eg chords)
-            d: null,                         // array data of [x,y] values for the gesture
+            d: [],                         // array data of [x,y] values for the gesture
             s: null,                         // a source ID (number)
             b: 999999999999999999999999999,  // begin time for this gesture
             e: -999999999999999999999999999, // end time for this gesture
@@ -20,9 +20,9 @@ define(
             drawID: false, 
             font: "12px Arial",     
             selectedP: false,
-            gID: gID_counter++,
-
-            sendData : {type: i_type, d: []},//, s: myID}, // a list of [t,y,z,{}] points to send to other participants; emptied after every send. 
+            gID: gID_counter++,              // unique id for this gesture
+                      // id for the source (the networked participant)
+            sendData : {type: i_type, d: []} ,//, s: myID}, // a list of [t,y,z,{}] points to send to other participants; emptied after every send. 
 
             "comm": comm,
 
@@ -136,7 +136,20 @@ define(
                var ne = [t,y,z];
                eobj && ne.push(eobj);
                genEvent.d.push(ne);
-               genEvent.sendData.d.push(ne);
+               genEvent.sendData.d.push(ne); // actuall, only gestures that contually update and send data need to do this...
+            },
+
+            /*
+            getSendData: function(){
+               return genEvent.sendData;
+            },
+            */
+
+            sendContinuation: function(){
+               if (genEvent.sendData.d.length > 0) { 
+                  comm.sendJSONmsg("contGesture", genEvent.sendData.d);
+                  genEvent.sendData.d=[];
+               }
             }
 
       };

@@ -1,7 +1,7 @@
 /* This application does simple "event chat". Here, events are mouse clicks on a canvas. 
 	There is also a metronome tick that comes the server (totally unrelated to the event chat functionality).
 	We register for the following messages:
-		init - sent by the server after the send connects. Data returned is an id that the server and other clients will use to recognizes messages from this client.
+		init - sent by the server after the send connects. Dta returned is an id that the server and other clients will use to recognizes messages from this client.
 		mouseContourGesture - sent when select chatroom member generates a mouse click. Data is x, y of their mouse position on their canvas.
 		metroPulse - sent by the server evdispPxery second to all chatroom members. Data is the server Date.now.
 		startTime  - sent when another chatroom member requests a new time origin. Data is the server Date.now.
@@ -266,6 +266,7 @@ require(
 						switch(keyCode){
 							case 13: 
 								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+								current_mgesture.updateMaxTime(t);
 								endContour(t, 0);
 								break;
 							default: 
@@ -382,7 +383,8 @@ require(
 		comm.registerCallback('contGesture', function(data, src) {
 			current_remoteEvent[src].d = current_remoteEvent[src].d.concat(data);
 			if (data.length === 0) console.log("Got contour event with 0 length data!");
-			current_remoteEvent[src].e=data[data.length-1][0];
+			current_remoteEvent[src].updateMaxTime();
+			//current_remoteEvent[src].e=data[data.length-1][0];
 		});
 		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
@@ -397,12 +399,15 @@ require(
 			for (fname in data.fields){
 				current_remoteEvent[src][fname]=data.fields[fname];
 			}
-
-			// These are "derived" fields, so no need to send them with the message
-			current_remoteEvent[src].b=data.d[0][0];
-			current_remoteEvent[src].e=data.d[data.d.length-1][0];
 			current_remoteEvent[src].d=data.d;
 			current_remoteEvent[src].s=src;
+
+			// These are "derived" fields, so no need to send them with the message
+			current_remoteEvent[src].updateMinTime();
+			current_remoteEvent[src].updateMaxTime();
+			//current_remoteEvent[src].b=data.d[0][0];
+			//current_remoteEvent[src].e=data.d[data.d.length-1][0];
+			console.log("Begin Gesture: END TIME NOW " + current_remoteEvent[src].e);
 
 			current_remoteEvent[src].soundbank=soundbank;
 
@@ -882,6 +887,8 @@ require(
 
 			if (radioSelection==='phrase'){
 				current_mgesture=scoreEvent("phraseEvent");
+				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "phraseEvent", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
+
 				current_mgesture.d= [[t,y,z]];
 			}
 
@@ -917,6 +924,13 @@ require(
 					}
 					comm.sendJSONmsg("endGesture", []);
 				}	
+
+				//"new" api to purge main.js of any "current_mgesture_2send" crap.
+				if (current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
+					current_mgesture.sendContinuation();
+					comm.sendJSONmsg("endGesture", []);
+				}
+
 			}
 			current_mgesture=undefined;
 			current_mgesture_2send=undefined;
@@ -1051,14 +1065,20 @@ require(
 			//-----------  if an event is in the middle of being drawn, send it every sendCurrentEventInterval
 			// send current event data periodically (rather than waiting until it is complete)
 			//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
-			if ((current_mgesture_2send!=undefined) && ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval)){
+			if ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval){
 				//console.log("tick " + t_sinceOrigin);
 				if (myRoom != []) {
 					//console.log("sending event");
-					if (current_mgesture_2send.d.length > 0)
+					if (current_mgesture_2send && (current_mgesture_2send.d.length > 0)) {
 						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
+						current_mgesture_2send.d=[];
+					}
+					//"new" api to purge main.js of any "current_mgesture_2send" crap.
+					if (current_mgesture && current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
+						current_mgesture.sendContinuation();
+					}
+
 				}
-				current_mgesture_2send.d=[];
  				lastSendTimeforCurrentEvent=t_sinceOrigin;
 			}
 			
