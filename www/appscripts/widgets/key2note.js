@@ -19,5 +19,13 @@ function () {
 		return basic[letter];
 	}
 
+	key2note.minNote=function(){
+		return 51;
+	}
+
+	key2note.maxNote=function(){
+		return 89+1;
+	}
+
  	return key2note;
  });

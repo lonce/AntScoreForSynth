@@ -69,8 +69,8 @@ define(
             canvasSlider.fire(e); // uses eventuality funcitonality
             canvasSlider.drawSlider();
 
-            myWindow.document.body.removeEventListener('mousemove'); 
-            myWindow.document.body.removeEventListener('mouseup');
+            myWindow.document.body.removeEventListener('mousemove', onMouseMove); 
+            myWindow.document.body.removeEventListener('mouseup', onMouseUp);
 
          }
 

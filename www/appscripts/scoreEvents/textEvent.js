@@ -17,7 +17,7 @@ define(
          //textBox.style.top=scoreElmt.offsetTop + "px";
          //textBox.style.left=scoreElmt.offsetLeft + "px";
 
-         console.log("appending textBox");
+         //console.log("appending textBox");
          scoreElmt.appendChild(textBox);
          textBox.focus();
 
@@ -50,7 +50,7 @@ define(
          textBox.onkeyup=function(evt){
           var chrTyped, chrCode = 0;
           m_scoreEvent.text=textBox.value;
-          console.log("in onkeyup, on keypress m_scoreEvent.text = " + m_scoreEvent.text);
+          //console.log("in onkeyup, on keypress m_scoreEvent.text = " + m_scoreEvent.text);
           if (evt.keyIdentifier==="Enter") {
             m_scoreEvent.comm.sendJSONmsg("update", {"gID": m_scoreEvent.gID, "text": m_scoreEvent.text});
             textBox.blur();
