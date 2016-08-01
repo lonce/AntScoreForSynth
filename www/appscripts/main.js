@@ -288,7 +288,7 @@ require(
 								break;
 							default: 
 								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
-								current_mgesture.addEvent(t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key});
+								current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
 								break;
 						}
 					} else{
@@ -306,7 +306,7 @@ require(
 			var t; 
 			if (! current_mgesture) return;
 			t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
-			current_mgesture.addEvent(t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key});
+			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
 	     }
 
 
@@ -389,12 +389,15 @@ require(
 		var m_lastSprayEvent = 0; // time (rel origin) of the last spray event (not where on the score, but when it happened. 
 
 
-
 		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of contGesture, and src is the id of the clicking client
 		comm.registerCallback('contGesture', function(data, src) {
-			current_remoteEvent[src].d = current_remoteEvent[src].d.concat(data);
+			for (var i=0; i<data.length;i++){
+				current_remoteEvent[src].addEvent(data[i]);
+			}
+			//current_remoteEvent[src].d = current_remoteEvent[src].d.concat(data);
 			if (data.length === 0) console.log("Got contour event with 0 length data!");
+			current_remoteEvent[src].updateMinTime();
 			current_remoteEvent[src].updateMaxTime();
 			//current_remoteEvent[src].e=data[data.length-1][0];
 		});
@@ -412,12 +415,12 @@ require(
 				current_remoteEvent[src][fname]=data.fields[fname];
 				console.log("adding fields " + fname + " = " + data.fields[fname])
 			}
-			current_remoteEvent[src].d=data.d;
+
+			current_remoteEvent[src].updateMinTime(data.time);
+			current_remoteEvent[src].updateMaxTime(data.time);
+
 			current_remoteEvent[src].s=src;
 
-			// These are "derived" fields, so no need to send them with the message
-			current_remoteEvent[src].updateMinTime();
-			current_remoteEvent[src].updateMaxTime();
 			//current_remoteEvent[src].b=data.d[0][0];
 			//current_remoteEvent[src].e=data.d[data.d.length-1][0];
 			console.log("Begin Gesture: END TIME NOW " + current_remoteEvent[src].e);
@@ -648,12 +651,13 @@ require(
 							}
 
 
-							current_mgesture.addEvent(interx, intery, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+							current_mgesture.addEvent([interx, intery, k_minLineThickness + k_maxLineThickness*leftSlider.value], true);
+							
 							current_mgesture_2send.d.push([interx, intery, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 						}
 
 						// after extending previous point, add the new point
-						current_mgesture.addEvent(tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+						current_mgesture.addEvent([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value], true);
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 					}
 					current_mgesture.updateMaxTime();
@@ -661,7 +665,7 @@ require(
 				if (current_mgesture &&  current_mgesture.type === 'mouseEventGesture'){
 					if (elapsedtime > (m_lastSprayEvent+k_sprayPeriod)){
 						// add a spray splotto the current gesture
-						current_mgesture.addEvent(tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+						current_mgesture.addEvent([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value], true);
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);						
 						m_lastSprayEvent  = Date.now()-timeOrigin;
 					}
@@ -755,7 +759,7 @@ require(
 
 				if (t_end < pastLinePx) {
 					// remove event from display list
-					//console.log("deleting element at time " + displayElements[dispElmt].e);
+					console.log("deleting element at time " + displayElements[dispElmt].e);
 					displayElements[dispElmt].destroy();
 					displayElements.splice(dispElmt,1);
 
@@ -768,7 +772,7 @@ require(
 
 
 					// If element is just crossing the "now" line, create little visual explosion
-					if (nowishP(dispe.d[0][0])){					
+					if ((dispe.d.length > 0) && nowishP(dispe.d[0][0])){					
 						explosion(time2Px(dispe.d[0][0]), dispe.d[0][1], 5, "#FF0000", 3, "#FFFFFF");
 
 					} 
@@ -845,30 +849,28 @@ require(
 
 			if (radioSelection==='contour'){
 				current_mgesture=scoreEvent("mouseContourGesture");
-				current_mgesture.d=[[t,y,z]];
 				current_mgesture.soundbank=soundbank;
 				current_mgesture.soundName = soundSelect.getModelName();
 				current_mgesture.param1=soundSelect.getSelectedParamName(1);
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseContourGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields()  });
-				current_mgesture_2send={type: 'mouseContourGesture', d: [], s: myID}; // do I need to add the source here??
+				comm.sendJSONmsg("beginGesture", {"time": t, "type": "mouseContourGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields()  });
+				current_mgesture_2send={type: 'mouseContourGesture', d: [[t,y,z]], s: myID}; // do I need to add the source here??
 
 				//console.log("starting gesture at " + t + ", " + y + ", " + z);
 			} 
 
 			if (radioSelection==='spray'){
 				current_mgesture=scoreEvent("mouseEventGesture");
-				current_mgesture.d=[[t,y,z]];
 				current_mgesture.soundbank=soundbank;
 				current_mgesture.soundName = soundSelect.getModelName();
 				current_mgesture.param1=soundSelect.getSelectedParamName(1);
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "mouseEventGesture", "cont": true, "fields": current_mgesture.getKeyFields() });
-				current_mgesture_2send={type: 'mouseEventGesture', d: [], s: myID}; // do I need to add the source here??
+				comm.sendJSONmsg("beginGesture", {"time": t, "type": "mouseEventGesture", "cont": true, "fields": current_mgesture.getKeyFields() });
+				current_mgesture_2send={type: 'mouseEventGesture', d: [[t,y,z]], s: myID}; // do I need to add the source here??
 
 				m_lastSprayEvent  = Date.now()-timeOrigin; // now, regardless of where on the time score the event is
 			} 
@@ -877,42 +879,38 @@ require(
 				//current_mgesture=scoreEvent("textEvent", m_tTab.currentSelection());
 				current_mgesture=scoreEvent("textEvent");
 				current_mgesture.enableEditing(); // enable since it's our own for typing into
-				current_mgesture.d=[[t,y,z]];
 
 				// calculate the length of the text box on the canvas
 				//current_mgesture.addEvent(t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z);
 
 				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
 				//comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "gID": current_mgesture.gID, "cont": false, "fields": current_mgesture.getKeyFields() });
+				comm.sendJSONmsg("beginGesture", {"time": t, "type": "textEvent", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
+				current_mgesture_2send={type: 'textEvent', d: [[t,y,z]], s: myID}; // do I need to add the source here??
 
 			}
 
 			if (radioSelection==='pitch'){
 				current_mgesture=scoreEvent("pitchEvent", m_pTab.currentSelection());
-				current_mgesture.d= [[t,y,z]];
 			}
 
 			if (radioSelection==='rhythm'){
 				current_mgesture=scoreEvent("rhythmEvent", m_rTab.currentSelection());
-				current_mgesture.d= [[t,y,z]];
 			}
 
 			if (radioSelection==='chord'){
 				current_mgesture=scoreEvent("chordEvent", m_cTab.currentSelection());
-				current_mgesture.d= [[t,y,z]];
 			}
 
 			if (radioSelection==='phrase'){
 				current_mgesture=scoreEvent("phraseEvent", phraseLock);
-				current_mgesture.d= [[t,y,z]];
 
 				current_mgesture.soundbank=soundbank;
 				current_mgesture.soundName = soundSelect.getModelName();
 				current_mgesture.param1=soundSelect.getSelectedParamName(1);
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
-				comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "phraseEvent", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
+				comm.sendJSONmsg("beginGesture", {"time": t, "type": "phraseEvent", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
 
 			}
 
@@ -920,6 +918,9 @@ require(
 			current_mgesture.updateMaxTime();
 			current_mgesture.s= myID;
 			current_mgesture.color="#00FF00";
+
+			current_mgesture.addEvent([t,y,z], true);
+
 			displayElements.push(current_mgesture);
 		}
 
@@ -967,6 +968,7 @@ require(
 			// by default,
 			var x=m.x;
 			var y=m.y;
+			var tempt;
 
 			if (descXButton.toggleState === 1){
 				x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
@@ -1003,6 +1005,11 @@ require(
 			if (m_currentTab === "phraseTab") {
 				console.log("mouse down with phraseTab selected");
 				if (current_mgesture) {
+
+					// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
+					//tempt=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+					//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
+
 					endContour(t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
 				}
 				phraseLock.value=px2NormFuture(x);

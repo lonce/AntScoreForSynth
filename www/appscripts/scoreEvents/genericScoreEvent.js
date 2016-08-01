@@ -132,11 +132,21 @@ define(
                return {};
             },
 
-            addEvent: function(t,y,z,eobj){
-               var ne = [t,y,z];
-               eobj && ne.push(eobj);
-               genEvent.d.push(ne);
-               genEvent.sendData.d.push(ne); // actuall, only gestures that contually update and send data need to do this...
+            addEvent: function(evArray, broadcastP){//t,y,z,eobj){
+               //var ne = [t,y,z];
+               broadcastP=broadcastP || false;
+               var t = evArray[0]
+
+               if (genEvent.d.length===0) {
+                  this.updateMinTime(t);
+                  this.updateMaxTime(t);
+               }
+               genEvent.d.push(evArray);
+
+               // add new data to structure for broadcasting
+               if (broadcastP){
+                  genEvent.sendData.d.push(evArray); // actuall, only gestures that contually update and send data need to do this...
+               }
             },
 
             /*

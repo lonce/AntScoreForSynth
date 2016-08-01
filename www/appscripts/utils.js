@@ -34,9 +34,18 @@ define(
                 //context.scale(1, 0.5);
                 var bbox = canvas.getBoundingClientRect();
                 return {
-                x: (evt.clientX - rect.left)*(canvas.width/bbox.width),
-                y: (evt.clientY - rect.top)*(canvas.height/bbox.height)
+                x: (evt.x - rect.left)*(canvas.width/bbox.width),
+                y: (evt.y - rect.top)*(canvas.height/bbox.height)
                 };
+            }
+
+            utils.canvas2Px = function(canvas, pt){
+                var rect = canvas.getBoundingClientRect();
+                var bbox = canvas.getBoundingClientRect();
+                return{
+                    x: (pt.x/(canvas.width/bbox.width)),//+ rect.left,
+                    y: (pt.y/(canvas.height/bbox.height))//+ rect.top
+                }
             }
 
            function byte2Hex(n)

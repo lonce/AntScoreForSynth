@@ -70,6 +70,7 @@ html, body
 
     }
 #block1b {
+        position: relative;
         background-color: black;
         width: 77%;
         height: 100%; 

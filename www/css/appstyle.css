@@ -175,10 +175,22 @@ color:white;
 }
 
 #score {
-
+	position: absolute;
+	top: 0;
+    left: 0;
 	width: 99%;
 	height:97%;
 	border:3px solid #0000FF;
+
+}
+
+#svgscore {
+      position: absolute; 
+      	width: 99%;
+		height:97%;
+      top: 3px;
+      left: 3px;  /* the size of the score border in px */
+      color: yellow; 
 
 }
 

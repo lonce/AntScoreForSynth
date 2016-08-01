@@ -17,6 +17,7 @@ define(
             //  ctx - 2D canvax drawing contex
             //  time2Px = function for translating the time sampls on these objects to pixel for drawing
          m_scoreEvent.draw = function(ctx, time2Px, nowishP, now){
+               if (this.d.length <=0 ) return;
                if (this.selectedP){
                   this.drawSelected(ctx,time2Px);
                }

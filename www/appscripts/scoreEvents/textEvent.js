@@ -72,10 +72,12 @@ define(
          
 
          m_scoreEvent.draw = function(ctx, time2Px, nowishP, now){
-            if (this.selectedP){
-               this.drawSelected(ctx,time2Px);
-            }
-            this.myDraw(ctx, time2Px(this.d[0][0])  , this.d[0][1] );
+          if (this.d.length <=0) return;
+          
+          if (this.selectedP){
+             this.drawSelected(ctx,time2Px);
+          }
+          this.myDraw(ctx, time2Px(this.d[0][0])  , this.d[0][1] );
          }
 
 
