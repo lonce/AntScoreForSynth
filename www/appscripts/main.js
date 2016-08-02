@@ -227,89 +227,6 @@ require(
 
 		var radioSelection = "contour"; // by default
 
-		window.addEventListener("keydown", keyDown, true);
-
-		function keyDown(e){
-			var t;
-			if (e.repeat) return;
-         		var keyCode = e.which;
-         		//console.log("keyCode  is " + keyCode + ", and e.key is " + e.key);
-         		switch(keyCode){
-         			case 84:   //'T'
-         				if (e.altKey===true){
-         					e.preventDefault();
-         					radioSelection = "text"; // the radio button value attribute is "text"
-							setTab("textTab");
-							document.getElementById("radioText").checked=true;
-         				}
-         				break;
-         			case 77:  // 'M'
-         				if (e.altKey===true){
-         					e.preventDefault();
-         					radioSelection = "contour"; // the radio button value attribute is "contour"
-							setTab("contourTab");
-							document.getElementById("radioContour").checked=true;
-         				}
-         				break;
-         			case 83:
-         				if (e.ctrlKey==1){
-         					//alert("control s was pressed");
-         					e.preventDefault();
-         					if(config.webkitAudioEnabled){
-								soundbank.addSnd(12); // max polyphony 
-							}
-							
-         				}
-				}
-				if (radioSelection === "phrase"){
-					//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
-
-					if (! current_mgesture){
-							// AUTO start phrase gesture at now line if keypressed before mousepress
-							phraseLock.pixelX=nowLinePx+.5;
-							phraseLock.value=px2NormFuture(phraseLock.pixelX);
-							
-							if (soundSelect.getModelName()===undefined){
-								console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
-								return;
-							}
-							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
-							console.log("initiate new contour at the NOW line"); 
-							initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
-					}
-
-
-					if (current_mgesture){
-						switch(keyCode){
-							case 13: 
-								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
-								//current_mgesture.updateMaxTime(t);
-								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
-								endContour(t);
-								break;
-							default: 
-								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
-								current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
-								break;
-						}
-					} else{
-						console.log("no gesture to add noteon event to.")
-					}
-				}
-		}
-
-
-		window.addEventListener("keyup", keyUp, true);
-
-		function keyUp(e){
-			if (e.repeat) return;
-         	var keyCode = e.which;
-			var t; 
-			if (! current_mgesture) return;
-			t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
-			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-	     }
-
 
 
 
@@ -345,9 +262,12 @@ require(
 			setTab("chordTab");
 		};
 
-		radioPhrase.onclick=function(){
+		radioPhrase.onclick=function(e){
 			radioSelection = this.value;
 			setTab("phraseTab");
+			console.log(" ......before setting canvas focus, focus is : " + document.activeElement);
+			theCanvas.focus();
+			console.log(" .....after setting canvas focus, focus is : " + document.activeElement);
 		};
 
 		//radioContour.addEventListener("onclick", function(){console.log("radio Contour");});
@@ -558,7 +478,19 @@ require(
 			trackY[i]=i*trackHeight;
 		}
 
+		theCanvas.addEventListener("focus", function(e){
+			console.log ("Canvas got focus");
+		});
+		theCanvas.addEventListener("blur", function(e){
+			console.log ("Canvas lost focus");
+		});
 
+		theCanvas.addEventListener("focusin", function(e){
+			console.log ("Canvas got focusing");
+		});
+		theCanvas.addEventListener("focusout", function(e){
+			console.log ("Canvas lost focus");
+		});
 
 		var time2Px=function(time){ // time measured since timeOrigin
 			return nowLinePx+(time-t_sinceOrigin)*pixelShiftPerMs;
@@ -586,8 +518,6 @@ require(
 		}
 
 
-
-
 		theCanvas.addEventListener("mousedown", onMouseDown, false);
 		theCanvas.addEventListener("mouseup", onMouseUp, false);
 		theCanvas.addEventListener("mousemove", onMouseMove, false);
@@ -598,8 +528,95 @@ require(
       	theCanvas.addEventListener("touchcancel", touch2Mouse.touchHandler, true);    
 
 
-		drawScreen(0);
 
+		theCanvas.addEventListener("keydown", keyDown, true);
+
+		function keyDown(e){
+			var t;
+			if (e.repeat) return;
+         		var keyCode = e.which;
+         		//console.log("keyCode  is " + keyCode + ", and e.key is " + e.key);
+         		switch(keyCode){
+         			case 84:   //'T'
+         				if (e.altKey===true){
+         					e.preventDefault();
+         					radioSelection = "text"; // the radio button value attribute is "text"
+							setTab("textTab");
+							document.getElementById("radioText").checked=true;
+         				}
+         				break;
+         			case 77:  // 'M'
+         				if (e.altKey===true){
+         					e.preventDefault();
+         					radioSelection = "contour"; // the radio button value attribute is "contour"
+							setTab("contourTab");
+							document.getElementById("radioContour").checked=true;
+         				}
+         				break;
+         			case 83:
+         				if (e.ctrlKey==1){
+         					//alert("control s was pressed");
+         					e.preventDefault();
+         					if(config.webkitAudioEnabled){
+								soundbank.addSnd(12); // max polyphony 
+							}
+							
+         				}
+				}
+				if (radioSelection === "phrase"){
+					//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
+
+					if (! current_mgesture){
+							// AUTO start phrase gesture at now line if keypressed before mousepress
+							phraseLock.pixelX=nowLinePx+.5;
+							phraseLock.value=px2NormFuture(phraseLock.pixelX);
+							
+							if (soundSelect.getModelName()===undefined){
+								console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
+								return;
+							}
+							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
+							console.log("initiate new contour at the NOW line"); 
+							initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
+					}
+
+
+					if (current_mgesture){
+						switch(keyCode){
+							case 13: 
+								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+								//current_mgesture.updateMaxTime(t);
+								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
+								endContour(t);
+								break;
+							default: 
+								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+								current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
+								break;
+						}
+					} else{
+						console.log("no gesture to add noteon event to.")
+					}
+				}
+		}
+
+
+		theCanvas.addEventListener("keyup", keyUp, true);
+
+		function keyUp(e){
+			if (e.repeat) return;
+         	var keyCode = e.which;
+			var t; 
+			if (! current_mgesture) return;
+			t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
+	     }
+
+
+
+
+
+		drawScreen(0);
 		var dispElmt;
 
 		function drawScreen(elapsedtime) {
@@ -965,7 +982,7 @@ require(
 	
 		// Record the time of the mouse event on the scrolling score
 		function onMouseDown(e){
-			event.preventDefault();
+			theCanvas.focus();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
 
 			// by default,
@@ -1061,6 +1078,7 @@ require(
 		}
 
 		function onMouseUp(e){
+			theCanvas.focus();
 			if (m_currentTab === "phraseTab") return; // don't end phrase gestures until RETURN key is hit
 			current_mgesture && endContour();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
@@ -1068,6 +1086,7 @@ require(
 		}
 
 		function onMouseMove(e){
+			theCanvas.focus();
 			last_mousemove_event=e;
 		}
 
