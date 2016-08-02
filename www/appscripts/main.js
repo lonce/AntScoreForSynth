@@ -274,7 +274,8 @@ require(
 								return;
 							}
 							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
-							initiateContour(phraseLock.pixelX,  theCanvas.height/2 - 10*myID);
+							console.log("initiate new contour at the NOW line"); 
+							initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
 					}
 
 
@@ -284,7 +285,7 @@ require(
 								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
 								//current_mgesture.updateMaxTime(t);
 								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
-								endContour(t, 0);
+								endContour(t);
 								break;
 							default: 
 								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
@@ -903,7 +904,7 @@ require(
 			}
 
 			if (radioSelection==='phrase'){
-				current_mgesture=scoreEvent("phraseEvent", phraseLock);
+				current_mgesture=scoreEvent("phraseEvent", phraseLock.pixelX);
 
 				current_mgesture.soundbank=soundbank;
 				current_mgesture.soundName = soundSelect.getModelName();
@@ -933,7 +934,7 @@ require(
 		}
 
 
-		function endContour(){
+		function endContour(t){
 			//console.log("endContour: current event is " + current_mgesture + " and the data length is " + current_mgesture.d.length);
 			current_mgesture.b=current_mgesture.d[0][0];
 			//console.log("contour length is " + current_mgesture.d.length);
@@ -956,6 +957,8 @@ require(
 				}
 
 			}
+			console.log("main . endContour, call gesture.endContour")
+			current_mgesture.endContour(t);
 			current_mgesture=undefined;
 			current_mgesture_2send=undefined;
 		}
@@ -1009,12 +1012,12 @@ require(
 					// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
 					//tempt=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
 					//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-
+					console.log("mouse down, ending contour at time " + t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value);
 					endContour(t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
 				}
 				phraseLock.value=px2NormFuture(x);
 				phraseLock.pixelX=x;
-				console.log("MouseDown: setting phraseLockValue to " + phraseLock.value);
+				//console.log("MouseDown: setting phraseLockValue to " + phraseLock.value);
 				if (soundSelect.getModelName()===undefined){
 					console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
 					return;
@@ -1051,6 +1054,7 @@ require(
 
 			} else {
 
+				console.log("mouseDown: initiate new contour");
 				initiateContour(x, y);
 			}
 

@@ -149,6 +149,10 @@ define(
                }
             },
 
+            endContour(t){
+               // in case you have any wrapping up to do 
+            },
+
             /*
             getSendData: function(){
                return genEvent.sendData;

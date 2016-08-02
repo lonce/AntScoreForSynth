@@ -1,7 +1,6 @@
 define(
 	["soundbank", "config", "widgets/key2note", "scoreEvents/genericScoreEvent", "utils"],
 	function (soundbank, config, key2note, genericScoreEvent, utils) {
-      var tempy;
 
       var svgscore = document.getElementById("svgscore");
       var score = document.getElementById("score");
@@ -45,9 +44,11 @@ define(
 
       return function (arg){
 
+        console.log("+++++++++initially, my phrasselock is " + arg);
         
         var monophonic = true;  // need more code for polyphonic..... associating noteoff numbers with note on
         var lastOn = 0;  // 0 if no notes on, most recent nuoteNum otherwise
+        var dangling = 0;
 
         var pt = {}; // will hold {x: , y:  }
         var pathString = "";
@@ -60,7 +61,9 @@ define(
 
         var m_scoreEvent=genericScoreEvent("phraseGesture");
 
-        m_scoreEvent.phraseLock = arg; 
+        //m_scoreEvent.phraseLock = arg; 
+        var phraseLock = arg; 
+
 
         m_scoreEvent.draw = function(ctx, time2Px, nowishP){
          var dispPx;
@@ -79,6 +82,7 @@ define(
 
          gesturePath=[];
 
+         
          if (this.selectedP){
           this.drawSelected(ctx,time2Px);
         }
@@ -183,7 +187,7 @@ define(
           pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
           tempNoteSvgRect.setAttribute("x", pt.x);
           tempNoteSvgRect.setAttribute("y", pt.y);
-          pt = utils.canvas2Px(score, {x: this.phraseLock.pixelX-tempNoteOnX, y: 0});
+          pt = utils.canvas2Px(score, {x: phraseLock-tempNoteOnX, y: 0});
           tempNoteSvgRect.setAttribute("width", pt.x);
 
           /* 
@@ -192,14 +196,18 @@ define(
           ctx.closePath();
           ctx.fill();
           */
+          dangling = lastOn;
+          lastOn=0; 
 
-          lastOn=0;
+        } else {
+          dangling=0;
         }
 
          // now connect the dots
         if (gesturePath.length > 0){
           // always push "end" point on to gesture path for plotting
-          gesturePath.push({x : Math.min(this.phraseLock.pixelX, dispPx=time2Px(this.e)), y: gesturePath[0].y});
+          
+          gesturePath.push({x : Math.min(phraseLock, dispPx=time2Px(this.e)), y: gesturePath[0].y});
 
           pt = utils.canvas2Px(score, {x: gesturePath[0].x, y: gesturePath[0].y});
           pathString = "M " + pt.x + "," + pt.y ;
@@ -207,7 +215,7 @@ define(
             pt = utils.canvas2Px(score, {x: gesturePath[i].x, y: gesturePath[0].y});
             pathString += " L " + pt.x + "," + pt.y ;
           }
-
+          //console.log("draw path");
           this.svgConnectElmt.setAttribute("d", pathString);
 
               /*
@@ -222,6 +230,17 @@ define(
             ctx.closePath();
             */
             gesturePath=[];
+          }
+
+        }
+
+        m_scoreEvent.endContour = function(t){
+          var augEvent = [t, 0, 0, {"event" : "noteOff", "noteNum" : dangling}];
+          if (dangling != 0){
+            console.log("adding noteoff for laston");
+            m_scoreEvent.d.push(augEvent);
+          } else{
+            console.log("ending contour with no dangling notes!!!!!!!!!!!!")
           }
 
         }
@@ -245,7 +264,7 @@ define(
           this.svgConnectElmt = document.createElementNS("http://www.w3.org/2000/svg", "path");
           svgscore.appendChild(this.svgConnectElmt);
           this.svgConnectElmt.setAttributeNS(null, "stroke", m_scoreEvent.color); 
-          this.svgConnectElmt.setAttributeNS(null, "stroke-width", 5);  
+          this.svgConnectElmt.setAttributeNS(null, "stroke-width", 1);  
           this.svgConnectElmt.setAttributeNS(null, "opacity", .5);  
         }
 
@@ -284,13 +303,41 @@ define(
              "soundName": m_scoreEvent.soundName,
              "param1": m_scoreEvent.param1,
              "param2": m_scoreEvent.param2,
-             "phraseLock" : m_scoreEvent.phraseLock
+             "phraseLock" : this.phraseLock
           }
        }
+
+       // Remove elements from canvas - not strictly necessary since the draw routine for
+       //   this phrase won't be called once the phrase moves off-screenanyway .....
+        m_scoreEvent.destroy = function(){
+          var eobj;
+
+          // remove all the svg elements for this phrase from the score canvas
+          if (this.svgElmt) {
+            //svgscore.removeChild(this.svgElmt);
+          }
+          if (this.svgConnectElmt) {
+            //svgscore.removeChild(this.svgConnectElmt);
+          }
+          for(var n=0;n<this.d.length;n++){
+              if (this.d[n].length >=4){
+                eobj=this.d[n][3];
+                if (eobj.noteSvgRect){
+                  console.log("removing nodeSvgRect");
+                  //svgscore.removeChild(eobj.noteSvgRect);
+                } 
+              }             // override to so whatever you need to do to get the element off the screen or whatever
+          }
+        }
+
 
 
         m_scoreEvent.updateMaxTime(Number.MAX_SAFE_INTEGER); // because we allow spaces between events in a phraseGesture
 		    return m_scoreEvent;
 
      }
+
+    
+
+
  });
