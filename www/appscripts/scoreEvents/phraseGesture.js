@@ -7,7 +7,7 @@ define(
 
       return function (arg){
 
-        var svgscore = document.getElementById("svgscore");
+        var svgscore = document.getElementById("svgscore"); // by default, but this can be set with setScore
         var score = document.getElementById("score");
 
         console.log("+++++++++initially, my phrasselock is " + arg);
@@ -207,7 +207,7 @@ define(
         // add SVG elements to this phrase
         if (! this.svgElmt){
           this.svgElmt = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          this.svgElmt.setAttribute("r",  2000);
+          this.svgElmt.setAttribute("r",  4);
           this.svgElmt.setAttribute("fill", this.color);
           this.svgElmt.setAttribute("stroke", "none");
           svgscore.appendChild(this.svgElmt);

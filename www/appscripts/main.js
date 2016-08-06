@@ -457,7 +457,7 @@ require(
 		// Client activity
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		var privateSpaceSvgCanvas = document.getElementById("privateSpaceSvgCanvas");
+		var privateSpaceSvgCanvas = document.getElementById("privateSpaceDiv");//privateSpaceSvgCanvas");
 		privateSpaceSvgCanvas.addEventListener("touchstart", touch2Mouse.touchHandler, true);
       	privateSpaceSvgCanvas.addEventListener("touchmove", touch2Mouse.touchHandler, true);
       	privateSpaceSvgCanvas.addEventListener("touchend", touch2Mouse.touchHandler, true);
@@ -469,7 +469,11 @@ require(
 			var gesture; 
 			if (radioSelection === "phrase"){
 				gesture = scoreEvent("phraseGesture");
+				gesture.s= myID;
+				gesture.color="#00FF00";
+
 				ps.initiateContour(gesture, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+
 			}
 		}, false);
 
