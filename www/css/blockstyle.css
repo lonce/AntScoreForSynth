@@ -62,7 +62,8 @@ html, body
 }
 
 #block1a {
-        background-color: #4B0082;
+        /* background-color: #4B0082; */
+        background-color: black;
 
         width: 3%;
         height: 100%; 
@@ -96,7 +97,7 @@ html, body
 
 /* Blocks 3 and 4 have 4 rows each */
 #block3 {
-    background-color: green;
+    background-color: black;
     width: 100%;
     height: 7%;
     overflow: visible;
@@ -156,6 +157,7 @@ html, body
         width: 52%;
         height: 100%; 
         float: left; 
+        position: relative;
     }
 #block4c1{
     width: 24%;

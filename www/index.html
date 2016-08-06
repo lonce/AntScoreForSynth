@@ -34,8 +34,10 @@
 	</div>
 
     <div id="block1">
-        <div id="block1a">
+        <div id="block1a" >
+          <div hidden>
                         <canvas id="slidercanvas1" ></canvas>
+          </div>
         </div>
         <div id="block1b" >
            	            
@@ -132,17 +134,17 @@
                             <input id="soundToggleButton" type="button" value="Sound Toggle"> 
                 </div>
 
-                <div id="timebuttondiv" >
+                <div id="timebuttondiv" hidden >
                             <input id="timeLockButton" type="button" value="Time Lock" > 
                 </div>
 
-                <div id="yLockButtonDiv" >
+                <div id="yLockButtonDiv" hidden >
                             <input id="yLockButton" type="button" value="Y Lock" > 
                 </div>
 
 
         </div>
-        <div id="block3c" >
+        <div id="block3c" hidden>
             <input id="timeLockSlider" type="range" name="points" step=".01" min="0.001" max="1">
         </div>
 
@@ -155,17 +157,17 @@
           <div id="block4a">
           </div>
           <div id="block4b">
-            <div id="descXDivId">
+            <div id="descXDivId" hidden>
               <input id="descXButton" type="button" value="dX" > 
               <input id="descXSlider" type="range" step=".25" min="0.25" max="2" value="1">
             </div>
-            <div id="descYDivId">
+            <div id="descYDivId" hidden>
               <input id="descYButton" type="button" value="dY" > 
               <input id="descYSlider" type="range" step="1" min="2" max="24" value=12>
             </div>
 
             <!-- populate with agentManager -->
-            <div id="agentSelectDiv"> Current Agent <br>
+            <div id="agentSelectDiv" hidden> Current Agent <br>
                <select id="agentSelector">
                </select>
             </div>
@@ -173,8 +175,8 @@
 
           </div>
           <div id="block4c">
-            <div id="block4c1">
-               <div id="chatheader">
+            <div id="block4c1" hidden>
+               <div id="chatheader" >
                 Chat
                </div>
               <textarea id="myChatArea"></textarea>
@@ -182,6 +184,11 @@
             <div id="block4c2">
               <textarea id="publicChatArea" readonly></textarea>
             </div>
+
+            <svg id="privateSpaceDiv">
+              <rect id="privateSpaceSvgCanvas"  />
+            </svg>
+
           </div>
           <div id="block4d" >
             <div id="soundDiv"> Current Sound

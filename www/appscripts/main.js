@@ -8,9 +8,10 @@
 */
 
 require(
-	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentManager", "config", "userConfig",  "chatter"],
+	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentManager", "config", "userConfig",  "chatter", "widgets/svgGhostScore", "widgets/privateSpaceFactory"],
 
-	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentMan,  config, userConfig,  chatter) {
+	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentMan,  config, userConfig,  chatter, svgGhostScore, privateSpaceFactory) {
+
 
 		//var mphraseLock.pixelX_agent;
 		//agentMan.registerAgent(agentPlayer(soundSelect), "my real agent");
@@ -455,14 +456,33 @@ require(
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Client activity
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+		var privateSpaceSvgCanvas = document.getElementById("privateSpaceSvgCanvas");
+		privateSpaceSvgCanvas.addEventListener("touchstart", touch2Mouse.touchHandler, true);
+      	privateSpaceSvgCanvas.addEventListener("touchmove", touch2Mouse.touchHandler, true);
+      	privateSpaceSvgCanvas.addEventListener("touchend", touch2Mouse.touchHandler, true);
+      	privateSpaceSvgCanvas.addEventListener("touchcancel", touch2Mouse.touchHandler, true);    
+
+      	var ps = privateSpaceFactory(privateSpaceSvgCanvas, config.scoreWindowTimeLength*2/3);
+
+		privateSpaceSvgCanvas.addEventListener("mousedown", function(e){
+			var gesture; 
+			if (radioSelection === "phrase"){
+				gesture = scoreEvent("phraseGesture");
+				ps.initiateContour(gesture, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+			}
+		}, false);
+
+		//privateSpace.addEventListener("keydown", keyDown, true);
+
+
 		var theCanvas = document.getElementById("score");
 		var context = theCanvas.getContext("2d");
 		var mouseX;
 		var mouseY;
 		context.font="9px Arial";
 
-		var scoreWindowTimeLength=40000; //ms
-		var pixelShiftPerMs=1*theCanvas.width/(scoreWindowTimeLength);
+		var pixelShiftPerMs=1*theCanvas.width/(config.scoreWindowTimeLength);
 		var pxPerSec=pixelShiftPerMs*1000;
 		var nowLinePx=1*theCanvas.width/3;
 		var pastLinePx=-20; // after which we delete the display elements
@@ -508,7 +528,7 @@ require(
 		}
 
 		var px2NormFuture=function(px){
-			return (px2Time(px)/((2/3)*scoreWindowTimeLength));
+			return (px2Time(px)/((2/3)*config.scoreWindowTimeLength));
 		}
 
 		var lastDrawTime=0;
@@ -584,13 +604,13 @@ require(
 					if (current_mgesture){
 						switch(keyCode){
 							case 13: 
-								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+								t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 								//current_mgesture.updateMaxTime(t);
 								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
 								endContour(t);
 								break;
 							default: 
-								t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+								t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 								current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
 								break;
 						}
@@ -608,7 +628,7 @@ require(
          	var keyCode = e.which;
 			var t; 
 			if (! current_mgesture) return;
-			t=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+			t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
 	     }
 
@@ -629,7 +649,7 @@ require(
 				var tx=m.x;
 				var ty=m.y;
 
-				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x) : elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x) : elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
 
 				//Descretize the new point in time and height
 				if (descXButton.toggleState === 1){ 
@@ -699,7 +719,7 @@ require(
  
  			// Draw scrolling sprockets--
  			context.fillStyle = "#999999";
- 			var sTime = (elapsedtime+scoreWindowTimeLength*(2/3))- (elapsedtime+scoreWindowTimeLength*(2/3))%sprocketInterval;
+ 			var sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%sprocketInterval;
  			//console.log("sprocket stime: " + sTime);
 			var sPx= time2Px(sTime);
 			//console.log("t since origin is " + t_sinceOrigin + ", and sTime is " + sTime);
@@ -710,7 +730,7 @@ require(
 			}
 			var disTime=sTime-(sTime%5000);
 			context.font="7px Verdana";
-			while (disTime >=(sTime-scoreWindowTimeLength)){
+			while (disTime >=(sTime-config.scoreWindowTimeLength)){
 				context.fillText(disTime/1000,time2Px(disTime),10);
 				//console.log("write disTime= " + disTime);
 				disTime-=5000;
@@ -721,7 +741,7 @@ require(
 			if (descXButton.toggleState===1){
 				context.lineWidth =1;
 				context.strokeStyle = "#333";
-				sTime = (elapsedtime+scoreWindowTimeLength*(2/3))- (elapsedtime+scoreWindowTimeLength*(2/3))%(descXMsInterval);
+				sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%(descXMsInterval);
 				//console.log("descX sTime: " + sTime);
 				//console.log(" ");
 				var start_sPx= time2Px(sTime);
@@ -814,7 +834,7 @@ require(
 			if (toggleTimeLockP===1){
 				//console.log ("slider val is " + timeLockSlider.value);
 
-				sTime=elapsedtime+scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				sTime=elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
 				sPx= time2Px(sTime);
 
 				context.strokeStyle = "#FFFF00";
@@ -921,17 +941,18 @@ require(
 			}
 
 			if (radioSelection==='phrase'){
-				current_mgesture=scoreEvent("phraseEvent", phraseLock.pixelX);
+				current_mgesture=scoreEvent("phraseGesture", phraseLock.pixelX);
 
 				current_mgesture.soundbank=soundbank;
 				current_mgesture.soundName = soundSelect.getModelName();
 				current_mgesture.param1=soundSelect.getSelectedParamName(1);
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
 
-				comm.sendJSONmsg("beginGesture", {"time": t, "type": "phraseEvent", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
+				comm.sendJSONmsg("beginGesture", {"time": t, "type": "phraseGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
 
 			}
 
+			// For all new gestures: 
 			current_mgesture.updateMinTime();
 			current_mgesture.updateMaxTime();
 			current_mgesture.s= myID;
@@ -1027,10 +1048,10 @@ require(
 				if (current_mgesture) {
 
 					// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
-					//tempt=t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value;
+					//tempt=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 					//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-					console.log("mouse down, ending contour at time " + t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value);
-					endContour(t_sinceOrigin+scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
+					console.log("mouse down, ending contour at time " + t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
+					endContour(t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
 				}
 				phraseLock.value=px2NormFuture(x);
 				phraseLock.pixelX=x;
