@@ -30,7 +30,7 @@ define(
         //m_scoreEvent.phraseLock = arg; 
         var phraseLock = arg; 
 
-        // called periodically by scrolling score
+        // called periodically by scrolling score ---------------------------------------------
         m_scoreEvent.draw = function(ctx, time2Px, nowishP){
           var dispPx;
           var dispPy;
@@ -168,16 +168,109 @@ define(
           }
         }  // closes the draw function 
 
-        m_scoreEvent.drawStatic = function(){
-            if ((! this.clientX) || (! this.clientY)){
-              console.log("scoreEvent.drawStatic requires clientX and clientY properties to draw");
-              return;
-            }
-            this.svgElmt.setAttribute("cx", this.clientX);
-            this.svgElmt.setAttribute("cy", this.clientY);  
+        // draw Static ------------------------------------------------------------------
+        m_scoreEvent.drawStatic = function(t, ms2pix, cheight){
+          var dispPx;
+          var dispPy;
 
-            svgscore.setAttribute("fill", this.color);  
-        }
+          var minNote = key2note.minNote();
+          var maxNote = key2note.maxNote(); 
+
+          var eobj; // event object, the optional 4th element in the event array: [t,x,y, obj]
+
+          var tempNoteOnY; 
+          var tempNoteOnX;
+          var tempNoteOnT;
+          var tempNoteSvgRect;
+
+
+          if ((! this.clientX) || (! this.clientY)){
+            console.log("scoreEvent.drawStatic requires clientX and clientY properties to draw");
+            return;
+          }
+
+           
+          if (this.selectedP){
+            this.drawSelected(ctx,time2Px);
+          }
+
+          for(var n=0;n<this.d.length;n++){    
+              dispPx = this.clientX + ms2pix(this.d[n][0]-this.d[0][0]);
+
+            if (this.d[n].length >=4){
+              eobj=this.d[n][3];
+              dispPy=shiftscale(eobj.noteNum, minNote, maxNote, cheight, 0);
+              if (eobj.event === "noteOn"){
+
+                // first, if there is already a note on, visually end it (but don't send a noteoff to the synth)
+                if (lastOn != 0){ 
+
+                  tempNoteSvgRect.setAttribute("x", tempNoteOnX);
+                  tempNoteSvgRect.setAttribute("y", tempNoteOnY);
+
+                  tempNoteSvgRect.setAttribute("width", dispPx-tempNoteOnX);
+
+                }
+                // now save the current note on data
+                tempNoteOnY=dispPy;
+                tempNoteOnX=dispPx;
+                tempNoteOnT = this.d[n][0];
+                tempNoteSvgRect = eobj.noteSvgRect;
+                lastOn = eobj.noteNum;
+
+              } 
+
+              if (eobj.event === "noteOff"){
+                // if there is, in fact, a note current on, then draw the box
+                if (lastOn === eobj.noteNum){//(tempNoteOnX != -1){ 
+
+                  tempNoteSvgRect.setAttribute("x", tempNoteOnX);
+                  tempNoteSvgRect.setAttribute("y", tempNoteOnY);
+
+                  tempNoteSvgRect.setAttribute("width", dispPx-tempNoteOnX);
+
+                 lastOn=0;
+               }
+             }
+
+           } else {  // [t,y,z, obj], there is no object on this array element 
+             dispPy = this.d[n][1]
+           }  
+               // Display the dot signalling the beginning of the gesture 
+           if (n===0){
+              svgscore.setAttribute("fill", this.color);  
+
+              this.svgElmt.setAttribute("cx", dispPx);
+              this.svgElmt.setAttribute("cy", dispPy);
+
+            }
+          } // done with the list 
+
+         // if you've gone through the list, and there is a note on (with no corresponding note off) draw it "so far"
+         if (lastOn != 0){
+            tempNoteSvgRect.setAttribute("x", tempNoteOnX);
+            tempNoteSvgRect.setAttribute("y", tempNoteOnY);
+
+            console.log("dangler width in pixels is " + ms2pix(t-tempNoteOnT));
+            tempNoteSvgRect.setAttribute("width", ms2pix(t-tempNoteOnT)); 
+
+            dangling = lastOn;
+            lastOn=0; 
+
+          } else {
+            dangling=0;
+          }
+
+          // Draw gesture indicator line
+          pathString = "M " + this.clientX + "," + this.clientY;
+          var len = ms2pix(t-this.d[0][0]); // starting time
+
+          pathString += " L " + (this.clientX+len) + "," + this.clientY;
+          this.svgConnectElmt.setAttribute("d", pathString);
+
+
+        }  // closes the draw function 
+
 
 
         m_scoreEvent.endContour = function(t){

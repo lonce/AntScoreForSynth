@@ -457,7 +457,7 @@ require(
 		// Client activity
 		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		var privateSpaceSvgCanvas = document.getElementById("privateSpaceDiv");//privateSpaceSvgCanvas");
+		var privateSpaceSvgCanvas = document.getElementById("privateSpaceSvg");//privateSpaceSvg");//privateSpaceSvgCanvas");
 		privateSpaceSvgCanvas.addEventListener("touchstart", touch2Mouse.touchHandler, true);
       	privateSpaceSvgCanvas.addEventListener("touchmove", touch2Mouse.touchHandler, true);
       	privateSpaceSvgCanvas.addEventListener("touchend", touch2Mouse.touchHandler, true);
@@ -467,17 +467,33 @@ require(
 
 		privateSpaceSvgCanvas.addEventListener("mousedown", function(e){
 			var gesture; 
+			console.log("mousedown on privateSpaceSvgCanvas");
 			if (radioSelection === "phrase"){
 				gesture = scoreEvent("phraseGesture");
 				gesture.s= myID;
 				gesture.color="#00FF00";
 
-				ps.initiateContour(gesture, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+				ps.initiateContour(gesture, t_sinceOrigin, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
 
 			}
+			//var pe = document.getElementById("svgfocus");
+			privateSpaceSvgCanvas.focus();
+			var foc = document.activeElement;
+      		var foo = 3;
+
 		}, false);
 
-		//privateSpace.addEventListener("keydown", keyDown, true);
+
+		privateSpaceSvgCanvas.addEventListener("keydown", function(e){
+			console.log("keydown on privateSpaceSvgCanvas");
+			ps.keyDown(e, t_sinceOrigin, leftSlider.value, radioSelection);
+		}, true);
+
+		privateSpaceSvgCanvas.addEventListener("keyup", function(e){
+			ps.keyUp(e, t_sinceOrigin, leftSlider.value, radioSelection);
+		}, true);
+
+
 
 
 		var theCanvas = document.getElementById("score");
@@ -550,7 +566,6 @@ require(
       	theCanvas.addEventListener("touchmove", touch2Mouse.touchHandler, true);
       	theCanvas.addEventListener("touchend", touch2Mouse.touchHandler, true);
       	theCanvas.addEventListener("touchcancel", touch2Mouse.touchHandler, true);    
-
 
 
 		theCanvas.addEventListener("keydown", keyDown, true);
@@ -1125,6 +1140,7 @@ require(
 			t_sinceOrigin = t_myMachineTime-timeOrigin;
 			
 			drawScreen(t_sinceOrigin);
+			ps.drawScreen(t_sinceOrigin);
 
 			agentMan.agent && agentMan.agent.tick(t_sinceOrigin, displayElements);
 
