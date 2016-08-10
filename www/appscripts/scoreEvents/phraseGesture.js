@@ -10,7 +10,7 @@ define(
         var svgscore = document.getElementById("svgscore"); // by default, but this can be set with setScore
         var score = document.getElementById("score");
 
-        console.log("+++++++++initially, my phrasselock is " + arg);
+        //console.log("+++++++++initially, my phrasselock is " + arg);
 
         var monophonic = true;  // need more code for polyphonic..... associating noteoff numbers with note on
         var lastOn = 0;  // 0 if no notes on, most recent nuoteNum otherwise
@@ -48,12 +48,10 @@ define(
 
           gesturePath=[];
 
-           
-          if (this.selectedP){
-            this.drawSelected(ctx,time2Px);
-          }
 
           ctx.fillStyle = this.color;
+
+
 
           for(var n=0;n<this.d.length;n++){    
             dispPx=time2Px(this.d[n][0]);  
@@ -170,6 +168,11 @@ define(
 
         // draw Static ------------------------------------------------------------------
         m_scoreEvent.drawStatic = function(t, ms2pix, cheight){
+
+          ms2pix=svgscore.ms2pix;
+          cheight = svgscore.getHeight();
+
+
           var dispPx;
           var dispPy;
 
@@ -189,10 +192,6 @@ define(
             return;
           }
 
-           
-          if (this.selectedP){
-            this.drawSelected(ctx,time2Px);
-          }
 
           for(var n=0;n<this.d.length;n++){    
               dispPx = this.clientX + ms2pix(this.d[n][0]-this.d[0][0]);
@@ -216,6 +215,7 @@ define(
                 tempNoteOnX=dispPx;
                 tempNoteOnT = this.d[n][0];
                 tempNoteSvgRect = eobj.noteSvgRect;
+
                 lastOn = eobj.noteNum;
 
               } 
@@ -263,13 +263,17 @@ define(
 
           // Draw gesture indicator line
           pathString = "M " + this.clientX + "," + this.clientY;
-          var len = ms2pix(t-this.d[0][0]); // starting time
+          var len = ms2pix((t?t:this.e)-this.d[0][0]); // starting time
+
+          if (! t){
+            console.log("setting the length of the path to " + len);
+          }
 
           pathString += " L " + (this.clientX+len) + "," + this.clientY;
           this.svgConnectElmt.setAttribute("d", pathString);
 
 
-        }  // closes the draw function 
+        }  // closes the drawStatic function 
 
 
 
@@ -281,6 +285,8 @@ define(
           } else{
             console.log("ending contour with no dangling notes!!!!!!!!!!!!")
           }
+          m_scoreEvent.updateMaxTime();
+          console.log("endContour, setting m_scoreEvent.e to " + m_scoreEvent.e);
 
         }
 
@@ -303,6 +309,15 @@ define(
           this.svgElmt.setAttribute("r",  4);
           this.svgElmt.setAttribute("fill", this.color);
           this.svgElmt.setAttribute("stroke", "none");
+
+          this.svgElmt.addEventListener("mousedown", function(e){
+            //e.stopPropagation();
+            e.eventSelection=m_scoreEvent; // let the mouse event propogate, but inform the bubblees that this was a selection event.
+            console.log("click on sbg rect");
+            //m_scoreEvent.select(true);
+          });
+
+
           svgscore.appendChild(this.svgElmt);
 
           this.svgConnectElmt = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -322,6 +337,12 @@ define(
             noteSvgRect.setAttribute("fill", m_scoreEvent.color);
             noteSvgRect.setAttribute("stroke", "none");
             noteSvgRect.setAttribute("height", 10);
+            noteSvgRect.addEventListener("mousedown", function(e){
+              //e.stopPropagation();
+              e.eventSelection=m_scoreEvent; // let the mouse event propogate, but inform the bubblees that this was a selection event.
+              console.log("click on sbg rect");
+              //m_scoreEvent.select(true);
+            });
             svgscore.appendChild(noteSvgRect);
 
             augEvent.push({"event" : "noteOn", "noteNum" : notenum, "noteSvgRect" : noteSvgRect})
@@ -338,6 +359,53 @@ define(
 
        }
 
+       // override
+       m_scoreEvent.select = function(arg){
+        var eobj;
+        this.selectedP=arg;   // set the flag
+                         
+        if (arg){   // change the stroke to white on all the elements
+
+          this.svgElmt.setAttribute("stroke", "white");
+          this.svgElmt.setAttribute("stroke-width", 1);
+
+          //this.svgConnectElmt.setAttribute("stroke", "white"); 
+          //this.svgConnectElmt.setAttribute("stroke-width", 1);  
+
+          for(var n=0;n<this.d.length;n++){    
+            if (this.d[n].length >=4){
+              eobj=this.d[n][3];
+              eobj.noteSvgRect && eobj.noteSvgRect.setAttribute("stroke", "white"); // only objects with noteon events have svgrects
+              eobj.noteSvgRect && eobj.noteSvgRect.setAttribute("stroke-width", 1); 
+            }
+          }
+        }  
+
+        else{
+          this.svgElmt.setAttribute("stroke", "none");
+          //this.svgConnectElmt.setAttribute("stroke", "none");  
+
+          for(var n=0;n<this.d.length;n++){    
+            if (this.d[n].length >=4){
+              eobj=this.d[n][3];
+              eobj.noteSvgRect && eobj.noteSvgRect.setAttribute("stroke", "none"); // only objects with noteon events have svgrects
+            }
+          }
+        }
+               
+       };
+
+      m_scoreEvent.emptyP = function(){
+          for(var n=0;n<this.d.length;n++){    
+            if (this.d[n].length >=4){  // phrase gestures must have elements with objects containing noteon or noteoffs to be considered non-empty
+              return false;
+            }
+          }
+          return true;
+      }  
+
+
+
        var shiftscale=function(g,m,n,x,y){
           return x + ((g-m)/(n-m))*(y-x);
        }
@@ -351,24 +419,23 @@ define(
           }
        }
 
-       // Remove elements from canvas - not strictly necessary since the draw routine for
-       //   this phrase won't be called once the phrase moves off-screenanyway .....
+       // Remove elements from canvas 
         m_scoreEvent.destroy = function(){
           var eobj;
 
           // remove all the svg elements for this phrase from the score canvas
           if (this.svgElmt) {
-            //svgscore.removeChild(this.svgElmt);
+            svgscore.removeChild(this.svgElmt);
           }
           if (this.svgConnectElmt) {
-            //svgscore.removeChild(this.svgConnectElmt);
+            svgscore.removeChild(this.svgConnectElmt);
           }
           for(var n=0;n<this.d.length;n++){
               if (this.d[n].length >=4){
                 eobj=this.d[n][3];
                 if (eobj.noteSvgRect){
                   console.log("removing nodeSvgRect");
-                  //svgscore.removeChild(eobj.noteSvgRect);
+                  svgscore.removeChild(eobj.noteSvgRect);
                 } 
               }             // override to so whatever you need to do to get the element off the screen or whatever
           }

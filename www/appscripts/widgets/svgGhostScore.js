@@ -5,14 +5,24 @@ define(
       var svgscore = document.getElementById("svgscore");
       var score = document.getElementById("score");
 
+      function cloneObject(obj) {
+          if (obj === null || typeof obj !== 'object') {
+              return obj;
+          }
+       
+          var temp = obj.constructor(); // give temp the original obj's constructor
+          for (var key in obj) {
+              temp[key] = cloneObject(obj[key]);
+          }
+       
+          return temp;
+      }
 
+      // copy mouse event and redispatch
       quickDelegate = function(event, target) {
-            var eventCopy = document.createEvent("MouseEvents");
-            eventCopy.initMouseEvent(event.type, event.bubbles, event.cancelable, event.view, event.detail,
-                event.pageX || event.layerX, event.pageY || event.layerY, event.clientX, event.clientY, event.ctrlKey, event.altKey,
-                event.shiftKey, event.metaKey, event.button, event.relatedTarget);
-            target.dispatchEvent(eventCopy);
-            // ... and in webkit I could just dispath the same event without copying it. eh.
+            var new_event = new MouseEvent(event.type, event);
+            new_event.eventSelection  =  event.eventSelection; // add the property glued on by svg gestures
+            target.dispatchEvent(new_event);
         };
 
       if (svgscore){
@@ -21,6 +31,7 @@ define(
         });
         
         svgscore.addEventListener('mousedown', function(event){
+          console.log("delegate mouse down")
           quickDelegate(event, score);
         });
         svgscore.addEventListener('mouseup', function(event){

@@ -276,11 +276,7 @@ require(
 
 			m_currentTab=showTab;
 			if (showTab != "selectTab"){
-				m_selectedElement = undefined;
-				// unselect any and all elements on the score
-				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
-					displayElements[dispElmt].select(false);
-				}
+				dynamicScore.select(false); 
 			}	
 			
 
@@ -468,7 +464,14 @@ require(
 		privateSpaceSvgCanvas.addEventListener("mousedown", function(e){
 			var gesture; 
 			console.log("mousedown on privateSpaceSvgCanvas");
-			if (radioSelection === "phrase"){
+
+			if (e.eventSelection){
+				console.log("statice space mouse down with EVENT SELECTION");
+				ps.endContour(t_sinceOrigin); 
+				ps.select(e.eventSelection);
+				dynamicScore.select(false);
+
+			} else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
 				gesture = scoreEvent("phraseGesture");
 				gesture.s= myID;
 				gesture.color="#00FF00";
@@ -494,7 +497,28 @@ require(
 		}, true);
 
 
+		var dynamicScore={}; // this should be analagous to what the privateSpaceFactory returns!!!! Unfortunately, theCanvas and all the score methods are all global here in main.js
 
+		dynamicScore.select=function(g){ 
+			// unselect any and all elements on the dynamic score
+			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+				displayElements[dispElmt].select(false);
+			}
+
+			if (! g) {
+				m_selectedElement = undefined;
+			} else {
+				// if making a new selection, deselect anything on the static score, too
+				ps.endContour(t_sinceOrigin);
+				ps.select(false);
+
+				// now make the new selection
+				g.select(true);
+				m_selectedElement=g;
+				console.log("dynamic score element being selected")
+			}
+
+		}
 
 		var theCanvas = document.getElementById("score");
 		var context = theCanvas.getContext("2d");
@@ -518,6 +542,7 @@ require(
 			trackY[i]=i*trackHeight;
 		}
 
+		/*
 		theCanvas.addEventListener("focus", function(e){
 			console.log ("Canvas got focus");
 		});
@@ -531,6 +556,7 @@ require(
 		theCanvas.addEventListener("focusout", function(e){
 			console.log ("Canvas lost focus");
 		});
+		*/
 
 		var time2Px=function(time){ // time measured since timeOrigin
 			return nowLinePx+(time-t_sinceOrigin)*pixelShiftPerMs;
@@ -611,7 +637,7 @@ require(
 							phraseLock.value=px2NormFuture(phraseLock.pixelX);
 							
 							if (soundSelect.getModelName()===undefined){
-								console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
+								console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
 								return;
 							}
 							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
@@ -972,12 +998,12 @@ require(
 			}
 
 			// For all new gestures: 
-			current_mgesture.updateMinTime();
-			current_mgesture.updateMaxTime();
 			current_mgesture.s= myID;
 			current_mgesture.color="#00FF00";
 
 			current_mgesture.addEvent([t,y,z], true);
+			current_mgesture.updateMinTime();
+			current_mgesture.updateMaxTime();
 
 			displayElements.push(current_mgesture);
 		}
@@ -1022,6 +1048,13 @@ require(
 	
 		// Record the time of the mouse event on the scrolling score
 		function onMouseDown(e){
+			if (e.eventSelection){ // coming from any of the  SVG objects that got selected
+				console.log("DYNAMIC space mouse down with EVENT SELECTION");
+				current_mgesture && current_mgesture.endContour(t_sinceOrigin); 
+				dynamicScore.select(e.eventSelection);
+				return;
+			}
+
 			theCanvas.focus();
 			var m = utils.getCanvasMousePosition(theCanvas, e);
 
@@ -1063,7 +1096,7 @@ require(
 			}
 
 			if (m_currentTab === "phraseTab") {
-				console.log("mouse down with phraseTab selected");
+				//console.log("mouse down with phraseTab selected");
 				if (current_mgesture) {
 
 					// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture

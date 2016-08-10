@@ -68,6 +68,7 @@ define(
              if (i_arg){
                   genEvent.e=Math.max(i_arg, genEvent.e);
                } else{
+                  genEvent.e=genEvent.d[0][0];
                   for (var i=0;i<genEvent.d.length;i++)
                      genEvent.e=Math.max(genEvent.e, genEvent.d[i][0]);
                }
@@ -164,7 +165,14 @@ define(
                   comm.sendJSONmsg("contGesture", genEvent.sendData.d);
                   genEvent.sendData.d=[];
                }
-            }
+            },
+
+            empty: function(){
+               if (genEvent.sendData.d.length <= 0) {
+                  return true;
+               }
+               return false;
+            }  
 
       };
       return genEvent;
