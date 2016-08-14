@@ -87,6 +87,12 @@ define(
                 return s;   
             }
 
+            Array.prototype.remove = function(val){
+                var i = this.indexOf(val);
+                return i>-1 ? this.splice(i, 1) : []; // destructively change array and return removed value
+            }
+
+
             //------------------------------------------------------------------------
             // This is Douglas Crockfords "composing objects by parts" code from his book
             utils.eventuality = function (that) {

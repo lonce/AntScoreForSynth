@@ -21,10 +21,7 @@ function () {
 
 		privateSpace.displayElements=[]; // list of score elememnts
 
-		privateSpace.displayElements.remove = function(val) {
-    		var i = this.indexOf(val);
-         	return i>-1 ? this.splice(i, 1) : []; // destructively change array and return removed value
-  		};
+
 
 
 		privateSpace.currentGesture=null; // the one in the middle of being drawn

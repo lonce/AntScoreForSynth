@@ -13,7 +13,7 @@ define(
             d: [],                         // array data of [x,y] values for the gesture
             s: null,                         // a source ID (number)
             b: 999999999999999999999999999,  // begin time for this gesture
-            e: -1, // end time for this gesture
+            e: undefined, // end time for this gesture
             color: "#FFFFFF",
             head: "rectangle",                // "diamond", "circle", "rectangle"
             tail: true,                      // boolean for now     
@@ -167,7 +167,7 @@ define(
                }
             },
 
-            empty: function(){
+            emptyP: function(){
                if (genEvent.sendData.d.length <= 0) {
                   return true;
                }

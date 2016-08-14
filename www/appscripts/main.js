@@ -54,6 +54,7 @@ require(
 		var myRoom=[];
 		var displayElements = [];  // list of all items to be displayed on the score
 
+
 		var findElmt=function(objArray,src,id){
 			for(var i=0;i<objArray.length;i++){
 				//console.log("findElmt: obj.gID = " + objArray[i].gID + " (id = " + id + "), and obj.s = " + objArray[i].s + " ( src = " + src + ")");
@@ -316,7 +317,7 @@ require(
 			//current_remoteEvent[src].d = current_remoteEvent[src].d.concat(data);
 			if (data.length === 0) console.log("Got contour event with 0 length data!");
 			current_remoteEvent[src].updateMinTime();
-			current_remoteEvent[src].updateMaxTime();
+			//**current_remoteEvent[src].updateMaxTime();
 			//current_remoteEvent[src].e=data[data.length-1][0];
 		});
 		//---------------------------------------------------------------------------
@@ -334,8 +335,16 @@ require(
 				console.log("adding fields " + fname + " = " + data.fields[fname])
 			}
 
-			current_remoteEvent[src].updateMinTime(data.time);
-			current_remoteEvent[src].updateMaxTime(data.time);
+			
+			if (data.d){
+				for (var i=0; i<data.d.length;i++){
+					current_remoteEvent[src].addEvent(data.d[i]);
+				}
+			}
+
+
+			current_remoteEvent[src].updateMinTime();//(data.time);
+			//**current_remoteEvent[src].updateMaxTime(data.time);
 
 			current_remoteEvent[src].s=src;
 
@@ -465,7 +474,7 @@ require(
 			var gesture; 
 			console.log("mousedown on privateSpaceSvgCanvas");
 
-			if (e.eventSelection){
+			if (e.eventSelection  && e.ctrlKey){
 				console.log("statice space mouse down with EVENT SELECTION");
 				ps.endContour(t_sinceOrigin); 
 				ps.select(e.eventSelection);
@@ -653,6 +662,7 @@ require(
 								//current_mgesture.updateMaxTime(t);
 								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
 								endContour(t);
+								//current_mgesture.updateMaxTime();
 								break;
 							default: 
 								t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
@@ -743,7 +753,6 @@ require(
 						current_mgesture.addEvent([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value], true);
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);
 					}
-					current_mgesture.updateMaxTime();
 				} 
 				if (current_mgesture &&  current_mgesture.type === 'mouseEventGesture'){
 					if (elapsedtime > (m_lastSprayEvent+k_sprayPeriod)){
@@ -752,7 +761,7 @@ require(
 						current_mgesture_2send.d.push([tx, ty, k_minLineThickness + k_maxLineThickness*leftSlider.value]);						
 						m_lastSprayEvent  = Date.now()-timeOrigin;
 					}
-					current_mgesture.updateMaxTime();
+	
 					current_mgesture.updateMinTime();
 
 				} 
@@ -834,13 +843,13 @@ require(
 
 			//------------		
 			// Draw the musical display elements 
-			var t_end; 
+			// var t_end; 
 			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){ // run through in reverse order so we can splice the array to remove long past elements
 
 				// If its moved out of our score window, delete it from the display list
-				t_end=time2Px(displayElements[dispElmt].e);
+				//t_end=time2Px(displayElements[dispElmt].e);
 
-				if (t_end < pastLinePx) {
+				if (displayElements[dispElmt].e && (time2Px(displayElements[dispElmt].e) < pastLinePx)) {
 					// remove event from display list
 					console.log("deleting element at time " + displayElements[dispElmt].e);
 					displayElements[dispElmt].destroy();
@@ -1003,7 +1012,7 @@ require(
 
 			current_mgesture.addEvent([t,y,z], true);
 			current_mgesture.updateMinTime();
-			current_mgesture.updateMaxTime();
+
 
 			displayElements.push(current_mgesture);
 		}
@@ -1021,9 +1030,12 @@ require(
 			//console.log("endContour: current event is " + current_mgesture + " and the data length is " + current_mgesture.d.length);
 			current_mgesture.b=current_mgesture.d[0][0];
 			//console.log("contour length is " + current_mgesture.d.length);
-			current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
+			//current_mgesture.e=current_mgesture.d[current_mgesture.d.length-1][0];
+			current_mgesture.updateMaxTime();
 			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
+			console.log("ending contour .... is it empptyP ?  ..... " + current_mgesture.emptyP())
+
 			if (myRoom != []) {
 				//console.log("sending event");
 				if (current_mgesture_2send){
@@ -1040,15 +1052,28 @@ require(
 				}
 
 			}
+
+
 			console.log("main . endContour, call gesture.endContour")
 			current_mgesture.endContour(t);
+
+			if (current_mgesture.emptyP()){
+				displayElements.remove(current_mgesture);
+				current_mgesture.destroy();
+			}
+
 			current_mgesture=undefined;
 			current_mgesture_2send=undefined;
 		}
 	
+	document.addEventListener("contextmenu",function(event){
+			event.preventDefault();
+
+	});
+
 		// Record the time of the mouse event on the scrolling score
 		function onMouseDown(e){
-			if (e.eventSelection){ // coming from any of the  SVG objects that got selected
+			if (e.eventSelection && e.ctrlKey){ // coming from any of the  SVG objects that got selected
 				console.log("DYNAMIC space mouse down with EVENT SELECTION");
 				current_mgesture && current_mgesture.endContour(t_sinceOrigin); 
 				dynamicScore.select(e.eventSelection);
@@ -1115,7 +1140,8 @@ require(
 			}
 
 			// now either select a duplicate a selected contour or initiate a new one.
-			if (m_currentTab === "selectTab"){
+			//if (m_currentTab === "selectTab"){
+			if (e.ctrlKey){
 				console.log("onMouseDown: check for selected element");
 				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 						if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
@@ -1142,7 +1168,8 @@ require(
 					displayElements.push(newG);
 				}
 
-			} else {
+			} 
+			else {
 
 				console.log("mouseDown: initiate new contour");
 				initiateContour(x, y);

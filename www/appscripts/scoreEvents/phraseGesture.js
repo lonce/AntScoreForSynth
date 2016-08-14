@@ -26,9 +26,8 @@ define(
         var param1, param2; // the string names of the parameters of the sound associated with this event
 
         var m_scoreEvent=genericScoreEvent("phraseGesture");  // factory output
-
         //m_scoreEvent.phraseLock = arg; 
-        var phraseLock = arg; 
+        m_scoreEvent.phraseLock = arg; 
 
         // called periodically by scrolling score ---------------------------------------------
         m_scoreEvent.draw = function(ctx, time2Px, nowishP){
@@ -138,7 +137,7 @@ define(
             pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
             tempNoteSvgRect.setAttribute("x", pt.x);
             tempNoteSvgRect.setAttribute("y", pt.y);
-            pt = utils.canvas2Px(score, {x: phraseLock-tempNoteOnX, y: 0});
+            pt = utils.canvas2Px(score, {x: m_scoreEvent.phraseLock-tempNoteOnX, y: 0});
             tempNoteSvgRect.setAttribute("width", pt.x);
 
             dangling = lastOn;
@@ -151,8 +150,12 @@ define(
            // now connect the dots
           if (gesturePath.length > 0){
             // always push "end" point on to gesture path for plotting
-            
-            gesturePath.push({x : Math.min(phraseLock, dispPx=time2Px(this.e)), y: gesturePath[0].y});
+            if (this.e){
+              gesturePath.push({x : dispPx=time2Px(this.e), y: gesturePath[0].y});
+            } else {
+              gesturePath.push({x : m_scoreEvent.phraseLock, y: gesturePath[0].y});
+            }
+            //gesturePath.push({x : Math.max(m_scoreEvent.phraseLock, dispPx=time2Px(this.e)), y: gesturePath[0].y});
 
             pt = utils.canvas2Px(score, {x: gesturePath[0].x, y: gesturePath[0].y});
             pathString = "M " + pt.x + "," + pt.y ;
@@ -415,7 +418,7 @@ define(
              "soundName": m_scoreEvent.soundName,
              "param1": m_scoreEvent.param1,
              "param2": m_scoreEvent.param2,
-             "phraseLock" : this.phraseLock
+             "phraseLock" : m_scoreEvent.phraseLock
           }
        }
 
