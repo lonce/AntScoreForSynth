@@ -35,6 +35,7 @@ function () {
 			g.clientY = y;
 			g.setScore(svgCanvas);  // should be passing the privateSpace, not the canvas, to the gesture
 			g.addEvent([t,y,z], false); // events record the time, not the x-value pixel
+			g.updateMinTime();
 			privateSpace.currentGesture = g;
 			privateSpace.displayElements.push(g);
 			if (g.type === "phraseGesture"){
@@ -45,7 +46,14 @@ function () {
 		privateSpace.keyDown = function(e, t, z, radioSelection){
 			if (e.repeat) return;
          		var keyCode = e.which;
-         		
+         		if (keyCode===17) return; // ignore ctl key
+         		if (keyCode === 27) { // escape key unselects 
+         			//dynamicScore.select();
+         			privateSpace.select();
+         			//m_selectedElement = undefined;
+         		}
+
+
 				if (radioSelection === "phrase"){
 					if (privateSpace.currentGesture){
 						switch(keyCode){

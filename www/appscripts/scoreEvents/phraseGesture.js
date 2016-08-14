@@ -29,6 +29,7 @@ define(
         //m_scoreEvent.phraseLock = arg; 
         m_scoreEvent.phraseLock = arg; 
 
+
         // called periodically by scrolling score ---------------------------------------------
         m_scoreEvent.draw = function(ctx, time2Px, nowishP){
           var dispPx;
@@ -65,11 +66,14 @@ define(
                     if (! this.snd){
                       this.snd=this.soundbank.getSnd(this.soundName);
                         //console.log("ok, got sound " + this.soundName)
-                      }
+                    }
                   }
                   this.snd && this.snd.setParamNorm(this.param1, 1-dispPy/ctx.canvas.height);
                   this.snd && this.snd.setParamNorm(this.param2, 1-this.d[n][2]);
-                  this.snd && this.snd.play();
+                  this.snd && this.snd.setParam("play", 1);
+                  eobj.played=true;
+                  //console.log("NOTEON : " + eobj.noteNum); 
+                  console.log("play");
                 }
 
                 // push note on
@@ -85,6 +89,10 @@ define(
                   pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
                   tempNoteSvgRect.setAttribute("width", pt.x);
 
+                  if (nowishP(this.d[n][0])){
+                      //console.log("SWITHCING NOTES from " + lastOn + " to " + eobj.noteNum)
+                  }
+
                 }
                 // now save the current note on data
                 tempNoteOnY=dispPy;
@@ -92,44 +100,54 @@ define(
                 tempNoteSvgRect = eobj.noteSvgRect;
                 lastOn = eobj.noteNum;
 
-                } 
+              } // if eobj.event === noteOn
 
-                if (eobj.event === "noteOff"){
-                  // if there is, in fact, a note current on, then draw the box
-                  if (lastOn === eobj.noteNum){//(tempNoteOnX != -1){ 
+              if (eobj.event === "noteOff"){
+                // if there is, in fact, a note current on, then draw the box
+                if (lastOn === eobj.noteNum){//(tempNoteOnX != -1){ 
 
-                    pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
-                    tempNoteSvgRect.setAttribute("x", pt.x);
-                    tempNoteSvgRect.setAttribute("y", pt.y);
-                    pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
-                    tempNoteSvgRect.setAttribute("width", pt.x);
+                  pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
+                  tempNoteSvgRect.setAttribute("x", pt.x);
+                  tempNoteSvgRect.setAttribute("y", pt.y);
+                  pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
+                  tempNoteSvgRect.setAttribute("width", pt.x);
 
-                    if (nowishP(this.d[n][0])){
-                     this.snd && this.snd.qrelease();
-                     this.snd && this.soundbank.releaseSnd(this.snd);       
-                   }
-
-                   lastOn=0;
+                  if (nowishP(this.d[n][0])){
+                   this.snd && this.snd.setParam("play", 0);
+                   console.log("release");
+                   this.snd && this.soundbank.releaseSnd(this.snd); 
+                   this.snd=null;
+                   eobj.played=true;    
+                   //console.log("NOTEOFF ( " + eobj.noteNum + ") ")  ;
+                   
                  }
-               }
 
-             } else {  // [t,y,z, obj], there is no object on this array element 
-               dispPy = this.d[n][1]
-             }  
-               // Display the dot signalling the beginning of the gesture 
-             if (n===0){
-                // Set any attributes as desired
-                pt = utils.canvas2Px(score, {x: dispPx, y: dispPy});
-                this.svgElmt.setAttribute("cx", pt.x);
-                this.svgElmt.setAttribute("cy", pt.y);
-                // Add to a parent node; document.documentElement should be the root svg element.
+                 lastOn=0;
+               } else {
 
-                //console.log("push NO NOTE " + dispPx + " , " + dispPy);
-                gesturePath.push({x : dispPx, y: dispPy});
-              }
+                  if (nowishP(this.d[n][0])){
+                    //console.log("NOWISH NOTEOFF ( " + eobj.noteNum + ") IGNORED")  ;
+                  }
+                }
+             }
 
-              
-            } // done with the list 
+           } else {  // [t,y,z, obj], there is no object on this array element 
+             dispPy = this.d[n][1]
+           }  
+             // Display the dot signalling the beginning of the gesture 
+           if (n===0){
+              // Set any attributes as desired
+              pt = utils.canvas2Px(score, {x: dispPx, y: dispPy});
+              this.svgElmt.setAttribute("cx", pt.x);
+              this.svgElmt.setAttribute("cy", pt.y);
+              // Add to a parent node; document.documentElement should be the root svg element.
+
+              //console.log("push NO NOTE " + dispPx + " , " + dispPy);
+              gesturePath.push({x : dispPx, y: dispPy});
+            }
+
+            
+          } // done with the list 
 
            // if you've gone through the list, and there is a note on (with no corresponding note off) draw it "so far"
            if (lastOn != 0){
@@ -332,10 +350,10 @@ define(
 
 
         if (eobj){
-          notenum = key2note.map(eobj.key);
+          notenum = eobj.noteNum || key2note.map(eobj.key);
           if (! notenum) return; // without adding a new time-stamped data point to the gesture (unmpapped key)
           
-          if (eobj.event==="keyDown"){
+          if ((eobj.event==="keyDown") || (eobj.event==="noteOn")){
             noteSvgRect =  document.createElementNS("http://www.w3.org/2000/svg", "rect");
             noteSvgRect.setAttribute("fill", m_scoreEvent.color);
             noteSvgRect.setAttribute("stroke", "none");
@@ -350,7 +368,7 @@ define(
 
             augEvent.push({"event" : "noteOn", "noteNum" : notenum, "noteSvgRect" : noteSvgRect})
 
-          } else if (eobj.event==="keyUp"){
+          } else if ((eobj.event==="keyUp") || (eobj.event==="noteOff")){
             augEvent.push({"event" : "noteOff", "noteNum" : notenum})
           }
         }

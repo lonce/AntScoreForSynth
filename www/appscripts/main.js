@@ -361,7 +361,8 @@ require(
 				//console.log("more data for this gesture will be expected");
 			} else {
 				//console.log("received completed gesture, terminate the reception of data for this gesture");
-				current_remoteEvent[src]=undefined; // no more data coming
+				current_remoteEvent[src].updateMaxTime();
+				current_remoteEvent[src]=undefined; // no more data coming (however, the object is still on the displayElements list)
 			}
 		});
 
@@ -384,6 +385,7 @@ require(
 			console.log("end gester received");
 			if (data.length >=1){
 				current_remoteEvent[src].e=data[0];
+				console.log("ending remote gesture, gesture.e = " + data[0]);
 			}
 			current_remoteEvent[src]=undefined; // no more data coming
 
@@ -479,6 +481,7 @@ require(
 				ps.endContour(t_sinceOrigin); 
 				ps.select(e.eventSelection);
 				dynamicScore.select(false);
+				m_selectedElement = e.eventSelection;
 
 			} else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
 				gesture = scoreEvent("phraseGesture");
@@ -526,7 +529,10 @@ require(
 				m_selectedElement=g;
 				console.log("dynamic score element being selected")
 			}
+		}
 
+		dynamicScore.latishP = function(t) {
+			if ((t > t_sinceOrigin - config.lateWindow) && (t <= t_sinceOrigin)) return true;
 		}
 
 		var theCanvas = document.getElementById("score");
@@ -592,6 +598,8 @@ require(
 			if ((t > lastDrawTime) && (t <= t_sinceOrigin)) return true;
 		}
 
+		
+
 
 		theCanvas.addEventListener("mousedown", onMouseDown, false);
 		theCanvas.addEventListener("mouseup", onMouseUp, false);
@@ -608,71 +616,79 @@ require(
 		function keyDown(e){
 			var t;
 			if (e.repeat) return;
-         		var keyCode = e.which;
-         		//console.log("keyCode  is " + keyCode + ", and e.key is " + e.key);
-         		switch(keyCode){
-         			case 84:   //'T'
-         				if (e.altKey===true){
-         					e.preventDefault();
-         					radioSelection = "text"; // the radio button value attribute is "text"
-							setTab("textTab");
-							document.getElementById("radioText").checked=true;
-         				}
-         				break;
-         			case 77:  // 'M'
-         				if (e.altKey===true){
-         					e.preventDefault();
-         					radioSelection = "contour"; // the radio button value attribute is "contour"
-							setTab("contourTab");
-							document.getElementById("radioContour").checked=true;
-         				}
-         				break;
-         			case 83:
-         				if (e.ctrlKey==1){
-         					//alert("control s was pressed");
-         					e.preventDefault();
-         					if(config.webkitAudioEnabled){
-								soundbank.addSnd(12); // max polyphony 
-							}
-							
-         				}
-				}
-				if (radioSelection === "phrase"){
-					//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
+     		var keyCode = e.which;
 
-					if (! current_mgesture){
-							// AUTO start phrase gesture at now line if keypressed before mousepress
-							phraseLock.pixelX=nowLinePx+.5;
-							phraseLock.value=px2NormFuture(phraseLock.pixelX);
-							
-							if (soundSelect.getModelName()===undefined){
-								console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
-								return;
-							}
-							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
-							console.log("initiate new contour at the NOW line"); 
-							initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
-					}
-
-
-					if (current_mgesture){
-						switch(keyCode){
-							case 13: 
-								t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
-								//current_mgesture.updateMaxTime(t);
-								//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
-								endContour(t);
-								//current_mgesture.updateMaxTime();
-								break;
-							default: 
-								t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
-								current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
-								break;
+     		//console.log("keyCode  is " + keyCode + ", and e.key is " + e.key);
+     		switch(keyCode){
+     			case 17:   // ignore CTL key
+     				return;
+     			case 27:    // ESC key deselects
+     				dynamicScore.select();
+     				//ps.select();
+     				m_selectedElement = undefined;
+     				return;
+     			case 84:   //'T'
+     				if (e.altKey===true){
+     					e.preventDefault();
+     					radioSelection = "text"; // the radio button value attribute is "text"
+						setTab("textTab");
+						document.getElementById("radioText").checked=true;
+     				}
+     				break;
+     			case 77:  // 'M'
+     				if (e.altKey===true){
+     					e.preventDefault();
+     					radioSelection = "contour"; // the radio button value attribute is "contour"
+						setTab("contourTab");
+						document.getElementById("radioContour").checked=true;
+     				}
+     				break;
+     			case 83:
+     				if (e.ctrlKey==1){
+     					//alert("control s was pressed");
+     					e.preventDefault();
+     					if(config.webkitAudioEnabled){
+							soundbank.addSnd(12); // max polyphony 
 						}
-					} else{
-						console.log("no gesture to add noteon event to.")
-					}
+						
+     				}
+			}
+			if (radioSelection === "phrase"){
+				//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
+
+				if (! current_mgesture){
+						// AUTO start phrase gesture at now line if keypressed before mousepress
+						phraseLock.pixelX=nowLinePx+1.5;
+						phraseLock.value=px2NormFuture(phraseLock.pixelX);
+						
+						if (soundSelect.getModelName()===undefined){
+							console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
+							return;
+						}
+						// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
+						console.log("initiate new contour at the NOW line"); 
+						initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
 				}
+
+
+				if (current_mgesture){
+					switch(keyCode){
+						case 13: 
+							t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							//current_mgesture.updateMaxTime(t);
+							//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
+							endContour(t);
+							//current_mgesture.updateMaxTime();
+							break;
+						default: 
+							t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
+							break;
+					}
+				} else{
+					console.log("no gesture to add noteon event to.")
+				}
+			}
 		}
 
 
@@ -1048,6 +1064,7 @@ require(
 				//"new" api to purge main.js of any "current_mgesture_2send" crap.
 				if (current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
 					current_mgesture.sendContinuation();
+					console.log("local end contour, with contour.e = " + current_mgesture.e)
 					comm.sendJSONmsg("endGesture", [current_mgesture.e]);
 				}
 
@@ -1071,178 +1088,183 @@ require(
 
 	});
 
-		// Record the time of the mouse event on the scrolling score
-		function onMouseDown(e){
-			if (e.eventSelection && e.ctrlKey){ // coming from any of the  SVG objects that got selected
+	// Record the time of the mouse event on the scrolling score
+	function onMouseDown(e){
+
+		if (e.ctrlKey){
+			if (e.eventSelection){ // coming from any of the  SVG objects that got selected
 				console.log("DYNAMIC space mouse down with EVENT SELECTION");
 				current_mgesture && current_mgesture.endContour(t_sinceOrigin); 
 				dynamicScore.select(e.eventSelection);
 				return;
-			}
-
-			theCanvas.focus();
-			var m = utils.getCanvasMousePosition(theCanvas, e);
-
-			// by default,
-			var x=m.x;
-			var y=m.y;
-			var tempt;
-
-			if (descXButton.toggleState === 1){
-				x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
-				//console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
-				//console.log("mouse time is " + px2Time(m.x) + ", mod time is " + px2Time(m.x)%descXMsInterval);
-			}
-
-			// time lock takes prcedence
-			x= (toggleTimeLockP===0) ? x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
-
-
-			if (descYButton.toggleState === 1){
-				y= m.y + descYInterval - m.y%descYInterval;
-			}
-
-			if (toggleYLockP===1){
-				yLockVal=m.y
-			}
-
-
-
-			last_mousemove_event=e;
-
-			//console.log("mousedown: m_currentTab is " + m_currentTab);
-
-
-			if ((m_currentTab === "sprayTab") || (m_currentTab === "contourTab")) {
-				if (soundSelect.getModelName()===undefined){
-					console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
-					return;
-				}
-			}
-
-			if (m_currentTab === "phraseTab") {
-				//console.log("mouse down with phraseTab selected");
-				if (current_mgesture) {
-
-					// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
-					//tempt=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
-					//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-					console.log("mouse down, ending contour at time " + t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
-					endContour(t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
-				}
-				phraseLock.value=px2NormFuture(x);
-				phraseLock.pixelX=x;
-				//console.log("MouseDown: setting phraseLockValue to " + phraseLock.value);
-				if (soundSelect.getModelName()===undefined){
-					console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
-					return;
-				}
-			}
-
-			// now either select a duplicate a selected contour or initiate a new one.
-			//if (m_currentTab === "selectTab"){
-			if (e.ctrlKey){
-				console.log("onMouseDown: check for selected element");
-				for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
-						if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
-							m_selectedElement=displayElements[dispElmt];
-							return; // we are done with MouseDown!
-						}
-				}
-				if (m_selectedElement){
-					//console.log("about to dubplicate elmt of type " + m_selectedElement.type);
-					var tshift = t_sinceOrigin + px2Time(m.x) - m_selectedElement.b;
-					var yshift = y-m_selectedElement.d[0][1];
-					var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
-
-					if (document.getElementById("radio_copyNewSound").checked === true){
-			               newG.soundName=soundSelect.getModelName();
-			               newG.param1=soundSelect.getSelectedParamName(1);
-			               newG.param2=soundSelect.getSelectedParamName(2);
-					}
-					
-
-					comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
-					m_selectedElement.select(false);
-					newG.select(true);
-					displayElements.push(newG);
-				}
-
 			} 
-			else {
+		}
 
-				console.log("mouseDown: initiate new contour");
-				initiateContour(x, y);
+		theCanvas.focus();
+		var m = utils.getCanvasMousePosition(theCanvas, e);
+
+		// by default,
+		var x=m.x;
+		var y=m.y;
+		var tempt;
+
+		if (descXButton.toggleState === 1){
+			x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
+			//console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
+			//console.log("mouse time is " + px2Time(m.x) + ", mod time is " + px2Time(m.x)%descXMsInterval);
+		}
+
+		// time lock takes prcedence
+		x= (toggleTimeLockP===0) ? x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
+
+
+		if (descYButton.toggleState === 1){
+			y= m.y + descYInterval - m.y%descYInterval;
+		}
+
+		if (toggleYLockP===1){
+			yLockVal=m.y
+		}
+
+
+
+		last_mousemove_event=e;
+
+		//console.log("mousedown: m_currentTab is " + m_currentTab);
+
+
+		if ((m_currentTab === "sprayTab") || (m_currentTab === "contourTab")) {
+			if (soundSelect.getModelName()===undefined){
+				console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
+				return;
 			}
-
 		}
 
-		function onMouseUp(e){
-			theCanvas.focus();
-			if (m_currentTab === "phraseTab") return; // don't end phrase gestures until RETURN key is hit
-			current_mgesture && endContour();
-			var m = utils.getCanvasMousePosition(theCanvas, e);
+		if (m_currentTab === "phraseTab") {
+			//console.log("mouse down with phraseTab selected");
+			if (current_mgesture) {
 
+				// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
+				//tempt=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+				//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
+				console.log("mouse down, ending contour at time " + t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
+				endContour(t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
+			}
+			phraseLock.value=px2NormFuture(x);
+			phraseLock.pixelX=x;
+			//console.log("MouseDown: setting phraseLockValue to " + phraseLock.value);
+			if (soundSelect.getModelName()===undefined){
+				console.log("mousedown: soundselect.model name is " + soundSelect.getModelName());
+				return;
+			}
 		}
 
-		function onMouseMove(e){
-			theCanvas.focus();
-			last_mousemove_event=e;
-		}
+		// now either select a duplicate a selected contour or initiate a new one.
+		//if (m_currentTab === "selectTab"){
+		if (e.ctrlKey){
+			console.log("onMouseDown: check for selected element");
+			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+					if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
+						m_selectedElement=displayElements[dispElmt];
+						return; // we are done with MouseDown!
+					}
+			}
+			if (m_selectedElement){
+				//console.log("about to dubplicate elmt of type " + m_selectedElement.type);
+				var tshift = t_sinceOrigin + px2Time(m.x) - m_selectedElement.b;
+				var yshift = y-m_selectedElement.d[0][1];
+				var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 
-
-		//	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		var t_myMachineTime;
-		var t_count=0;
-		var timerLoop = function(){
-
-			t_myMachineTime = Date.now();
-			t_sinceOrigin = t_myMachineTime-timeOrigin;
-			
-			drawScreen(t_sinceOrigin);
-			ps.drawScreen(t_sinceOrigin);
-
-			agentMan.agent && agentMan.agent.tick(t_sinceOrigin, displayElements);
-
-			// create a display clock tick every 1000 ms
-			while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
-				m_tickCount++;
-				m_lastDisplayTick += 1000;
-				k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
-
+				// Use selected sound (not sound from selected gesture)
+				if ((! newG.soundName ) || (document.getElementById("radio_copyNewSound").checked === true)){ // the first case happens when sounds are created on the private space and copied to the dynamic score
+		               newG.soundbank=soundbank;
+		               newG.soundName=soundSelect.getModelName();
+		               newG.param1=soundSelect.getSelectedParamName(1);
+		               newG.param2=soundSelect.getSelectedParamName(2);
+				}
 				
-				//console.log("displayElements length is " + displayElements.length)
-				if (displayElements.length >2){
-					var foo = 4;
-				}
+
+				comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
+				m_selectedElement.select(false);
+				newG.select(true);
+				displayElements.push(newG);
 			}
 
-			//-----------  if an event is in the middle of being drawn, send it every sendCurrentEventInterval
-			// send current event data periodically (rather than waiting until it is complete)
-			//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
-			if ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval){
-				//console.log("tick " + t_sinceOrigin);
-				if (myRoom != []) {
-					//console.log("sending event");
-					if (current_mgesture_2send && (current_mgesture_2send.d.length > 0)) {
-						comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
-						current_mgesture_2send.d=[];
-					}
-					//"new" api to purge main.js of any "current_mgesture_2send" crap.
-					if (current_mgesture && current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
-						current_mgesture.sendContinuation();
-					}
+		} 
+		else {
 
-				}
- 				lastSendTimeforCurrentEvent=t_sinceOrigin;
-			}
+			console.log("mouseDown: initiate new contour");
+			initiateContour(x, y);
+		}
+
+	}
+
+	function onMouseUp(e){
+		theCanvas.focus();
+		if (m_currentTab === "phraseTab") return; // don't end phrase gestures until RETURN key is hit
+		current_mgesture && endContour();
+		var m = utils.getCanvasMousePosition(theCanvas, e);
+
+	}
+
+	function onMouseMove(e){
+		theCanvas.focus();
+		last_mousemove_event=e;
+	}
+
+
+	//	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	var t_myMachineTime;
+	var t_count=0;
+	var timerLoop = function(){
+
+		t_myMachineTime = Date.now();
+		t_sinceOrigin = t_myMachineTime-timeOrigin;
+		
+		drawScreen(t_sinceOrigin);
+		ps.drawScreen(t_sinceOrigin);
+
+		agentMan.agent && agentMan.agent.tick(t_sinceOrigin, displayElements);
+
+		// create a display clock tick every 1000 ms
+		while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
+			m_tickCount++;
+			m_lastDisplayTick += 1000;
+			k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
+
 			
-			//--------------------------------------------------------
+			//console.log("displayElements length is " + displayElements.length)
+			if (displayElements.length >2){
+				var foo = 4;
+			}
+		}
 
-			myrequestAnimationFrame(timerLoop);
-		};
+		//-----------  if an event is in the middle of being drawn, send it every sendCurrentEventInterval
+		// send current event data periodically (rather than waiting until it is complete)
+		//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
+		if ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval){
+			//console.log("tick " + t_sinceOrigin);
+			if (myRoom != []) {
+				//console.log("sending event");
+				if (current_mgesture_2send && (current_mgesture_2send.d.length > 0)) {
+					comm.sendJSONmsg("contGesture", current_mgesture_2send.d);
+					current_mgesture_2send.d=[];
+				}
+				//"new" api to purge main.js of any "current_mgesture_2send" crap.
+				if (current_mgesture && current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
+					current_mgesture.sendContinuation();
+				}
 
-		timerLoop();  // fire it up
+			}
+				lastSendTimeforCurrentEvent=t_sinceOrigin;
+		}
+		
+		//--------------------------------------------------------
+
+		myrequestAnimationFrame(timerLoop);
+	};
+
+	timerLoop();  // fire it up
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// callback from html

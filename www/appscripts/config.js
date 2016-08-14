@@ -13,6 +13,8 @@ define(
 
 		exports.scoreWindowTimeLength=40000; //ms
 
+		exports.lateWindow = 60; // ms  to allow for events coming in late for "now" from networked participants
+
 
 		exports.maxContourWidth=0; //set this in main 
 		return exports;

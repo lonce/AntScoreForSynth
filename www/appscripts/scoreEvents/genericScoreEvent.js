@@ -44,8 +44,16 @@ define(
                if (this.param2) newEvent.param2=this.param2;
 
                newEvent.d=[];
+               var evtuple;
+               var deleteMe;
                for (var n=0;n<this.d.length;n++){
-                  newEvent.d.push([this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ]);
+                  evtuple = [this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ];
+                  deleteMe=this.d[n];
+                  if (this.d[n][3]) {
+                     evtuple.push(this.d[n][3]);
+                  }
+                  //newEvent.d.push([this.d[n][0]+tshift, this.d[n][1]+yshift, this.d[n][2] ]);
+                  newEvent.addEvent(evtuple);
                }
                newEvent.b=this.b+tshift;
                newEvent.e=this.e+tshift;
