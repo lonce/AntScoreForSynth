@@ -144,7 +144,7 @@ require(
 		var descXSlider = window.document.getElementById("descXSlider");
 		descXSlider.oninput = function(e){
 			descXMsInterval =1000*descXSlider.value;
-			descXPxInterval = pixelShiftPerMs*descXMsInterval;
+			descXPxInterval = dynamicScore.pixelShiftPerMs*descXMsInterval;
 			console.log("descxsliderchange");
 		}
 
@@ -165,7 +165,7 @@ require(
 			} else {
 				descXButton.style.background='#005900';
 				descXMsInterval =1000*descXSlider.value;
-				descXPxInterval = pixelShiftPerMs*descXMsInterval;
+				descXPxInterval = dynamicScore.pixelShiftPerMs*descXMsInterval;
 			}
 		}
 
@@ -182,14 +182,40 @@ require(
 		}
 
 
+		var dynamicScore={}; // this should be analagous to what the privateSpaceFactory returns!!!! Unfortunately, theCanvas and all the score methods are all global here in main.js
+
+		dynamicScore.select=function(g){ 
+			// unselect any and all elements on the dynamic score
+			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
+				displayElements[dispElmt].select(false);
+			}
+
+			if (! g) {
+				m_selectedElement = undefined;
+			} else {
+				// if making a new selection, deselect anything on the static score, too
+				ps.endContour(dynamicScore.t_sinceOrigin);
+				ps.select(false);
+
+				// now make the new selection
+				g.select(true);
+				m_selectedElement=g;
+				console.log("dynamic score element being selected")
+			}
+		}
+
+		dynamicScore.latishP = function(t) {
+			if ((t > dynamicScore.t_sinceOrigin - config.lateWindow) && (t <= dynamicScore.t_sinceOrigin)) return true;
+		}
 
 
 		var getScoreTime=function(){
-			return t_sinceOrigin;
+			return dynamicScore.t_sinceOrigin;
 		}
+		dynamicScore.getScoreTime=getScoreTime;
 
 		var m_chatter=chatter(window.document.getElementById("publicChatArea"),
-			window.document.getElementById("myChatArea"), getScoreTime);
+			window.document.getElementById("myChatArea"), dynamicScore.getScoreTime);
 
 		//-----------------------------------------------------------------------------
 		//var newSoundSelector = window.document.getElementById("newSoundSelector")
@@ -478,7 +504,7 @@ require(
 
 			if (e.eventSelection  && e.ctrlKey){
 				console.log("statice space mouse down with EVENT SELECTION");
-				ps.endContour(t_sinceOrigin); 
+				ps.endContour(dynamicScore.t_sinceOrigin); 
 				ps.select(e.eventSelection);
 				dynamicScore.select(false);
 				m_selectedElement = e.eventSelection;
@@ -488,7 +514,7 @@ require(
 				gesture.s= myID;
 				gesture.color="#00FF00";
 
-				ps.initiateContour(gesture, t_sinceOrigin, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
+				ps.initiateContour(gesture, dynamicScore.t_sinceOrigin, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
 
 			}
 			//var pe = document.getElementById("svgfocus");
@@ -501,50 +527,27 @@ require(
 
 		privateSpaceSvgCanvas.addEventListener("keydown", function(e){
 			console.log("keydown on privateSpaceSvgCanvas");
-			ps.keyDown(e, t_sinceOrigin, leftSlider.value, radioSelection);
+			ps.keyDown(e, dynamicScore.t_sinceOrigin, leftSlider.value, radioSelection);
 		}, true);
 
 		privateSpaceSvgCanvas.addEventListener("keyup", function(e){
-			ps.keyUp(e, t_sinceOrigin, leftSlider.value, radioSelection);
+			ps.keyUp(e, dynamicScore.t_sinceOrigin, leftSlider.value, radioSelection);
 		}, true);
 
 
-		var dynamicScore={}; // this should be analagous to what the privateSpaceFactory returns!!!! Unfortunately, theCanvas and all the score methods are all global here in main.js
-
-		dynamicScore.select=function(g){ 
-			// unselect any and all elements on the dynamic score
-			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
-				displayElements[dispElmt].select(false);
-			}
-
-			if (! g) {
-				m_selectedElement = undefined;
-			} else {
-				// if making a new selection, deselect anything on the static score, too
-				ps.endContour(t_sinceOrigin);
-				ps.select(false);
-
-				// now make the new selection
-				g.select(true);
-				m_selectedElement=g;
-				console.log("dynamic score element being selected")
-			}
-		}
-
-		dynamicScore.latishP = function(t) {
-			if ((t > t_sinceOrigin - config.lateWindow) && (t <= t_sinceOrigin)) return true;
-		}
 
 		var theCanvas = document.getElementById("score");
+		dynamicScore.canvas = theCanvas; // eventuall remove theCanvas from global name space
+
 		var context = theCanvas.getContext("2d");
 		var mouseX;
 		var mouseY;
 		context.font="9px Arial";
 
-		var pixelShiftPerMs=1*theCanvas.width/(config.scoreWindowTimeLength);
-		var pxPerSec=pixelShiftPerMs*1000;
-		var nowLinePx=1*theCanvas.width/3;
-		var pastLinePx=-20; // after which we delete the display elements
+		dynamicScore.pixelShiftPerMs = 1*theCanvas.width/(config.scoreWindowTimeLength);;
+		dynamicScore.pxPerSec = dynamicScore.pixelShiftPerMs*1000;
+		dynamicScore.nowLinePx = 1*theCanvas.width/3;
+		dynamicScore.pastLinePx = -20; // after which we delete the display elements
 
 		var sprocketHeight=2;
 		var sprocketWidth=1;
@@ -573,32 +576,36 @@ require(
 		});
 		*/
 
-		var time2Px=function(time){ // time measured since timeOrigin
-			return nowLinePx+(time-t_sinceOrigin)*pixelShiftPerMs;
-		}
-		var px2Time=function(px){  // relative to the now line
-			return (px-nowLinePx)/pixelShiftPerMs;
+		dynamicScore.time2Px=function(time){ // time measured since timeOrigin
+			return dynamicScore.nowLinePx+(time-dynamicScore.t_sinceOrigin)*dynamicScore.pixelShiftPerMs;
 		}
 
-		var px2TimeO=function(px){  // relative to origin
-			return t_sinceOrigin+(px-nowLinePx)/pixelShiftPerMs;
+		dynamicScore.px2Time=function(px){  // relative to the now line
+			return (px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
 		}
 
-		var pxTimeSpan=function(px){  //units of ms
-			return (px/pixelShiftPerMs);
+		dynamicScore.px2TimeO=function(px){  // relative to origin
+			return dynamicScore.t_sinceOrigin+(px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
 		}
 
-		var px2NormFuture=function(px){
-			return (px2Time(px)/((2/3)*config.scoreWindowTimeLength));
+		dynamicScore.pxTimeSpan=function(px){  //units of ms
+			return (px/dynamicScore.pixelShiftPerMs);
 		}
+
+		dynamicScore.px2NormFuture=function(px){
+			return (dynamicScore.px2Time(px)/((2/3)*config.scoreWindowTimeLength));
+		}
+
 
 		var lastDrawTime=0;
-		var t_sinceOrigin;
-		var nowishP = function(t){
-			if ((t > lastDrawTime) && (t <= t_sinceOrigin)) return true;
+
+		dynamicScore.t_sinceOrigin = 0;
+
+		dynamicScore.nowishP = function(t){
+			if ((t > lastDrawTime) && (t <= dynamicScore.t_sinceOrigin)) return true;
 		}
 
-		
+	
 
 
 		theCanvas.addEventListener("mousedown", onMouseDown, false);
@@ -658,8 +665,8 @@ require(
 
 				if (! current_mgesture){
 						// AUTO start phrase gesture at now line if keypressed before mousepress
-						phraseLock.pixelX=nowLinePx+1.5;
-						phraseLock.value=px2NormFuture(phraseLock.pixelX);
+						phraseLock.pixelX=dynamicScore.nowLinePx+1.5;
+						phraseLock.value=dynamicScore.px2NormFuture(phraseLock.pixelX);
 						
 						if (soundSelect.getModelName()===undefined){
 							console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
@@ -674,14 +681,14 @@ require(
 				if (current_mgesture){
 					switch(keyCode){
 						case 13: 
-							t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 							//current_mgesture.updateMaxTime(t);
 							//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
 							endContour(t);
 							//current_mgesture.updateMaxTime();
 							break;
 						default: 
-							t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 							current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
 							break;
 					}
@@ -699,7 +706,7 @@ require(
          	var keyCode = e.which;
 			var t; 
 			if (! current_mgesture) return;
-			t=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+			t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
 	     }
 
@@ -720,11 +727,11 @@ require(
 				var tx=m.x;
 				var ty=m.y;
 
-				tx= (toggleTimeLockP===0) ? elapsedtime + px2Time(m.x) : elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				tx= (toggleTimeLockP===0) ? elapsedtime + dynamicScore.px2Time(m.x) : elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
 
 				//Descretize the new point in time and height
 				if (descXButton.toggleState === 1){ 
-					tx = px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval;
+					tx = dynamicScore.px2TimeO(m.x) - dynamicScore.px2TimeO(m.x)%descXMsInterval;
 				}
 
 				if (descYButton.toggleState === 1){
@@ -791,17 +798,17 @@ require(
  			context.fillStyle = "#999999";
  			var sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%sprocketInterval;
  			//console.log("sprocket stime: " + sTime);
-			var sPx= time2Px(sTime);
-			//console.log("t since origin is " + t_sinceOrigin + ", and sTime is " + sTime);
+			var sPx= dynamicScore.time2Px(sTime);
+			//console.log("t since origin is " + dynamicScore.t_sinceOrigin + ", and sTime is " + sTime);
 			while(sPx > 0){ // loop over sprocket times within score window
 				context.fillRect(sPx,0,sprocketWidth,sprocketHeight);
 				context.fillRect(sPx,1*theCanvas.height-sprocketHeight,sprocketWidth,sprocketHeight);
-				sPx-=pixelShiftPerMs*sprocketInterval;
+				sPx-=dynamicScore.pixelShiftPerMs*sprocketInterval;
 			}
 			var disTime=sTime-(sTime%5000);
 			context.font="7px Verdana";
 			while (disTime >=(sTime-config.scoreWindowTimeLength)){
-				context.fillText(disTime/1000,time2Px(disTime),10);
+				context.fillText(disTime/1000,dynamicScore.time2Px(disTime),10);
 				//console.log("write disTime= " + disTime);
 				disTime-=5000;
 			}
@@ -814,7 +821,7 @@ require(
 				sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%(descXMsInterval);
 				//console.log("descX sTime: " + sTime);
 				//console.log(" ");
-				var start_sPx= time2Px(sTime);
+				var start_sPx= dynamicScore.time2Px(sTime);
 				sPx=start_sPx;
 
 				var loopCount=0;
@@ -826,8 +833,8 @@ require(
 					context.closePath();
 
 					loopCount++;
-					sPx=start_sPx-loopCount*pixelShiftPerMs*descXMsInterval;
-					//sPx-=pixelShiftPerMs*descXMsInterval;
+					sPx=start_sPx-loopCount*dynamicScore.pixelShiftPerMs*descXMsInterval;
+					//sPx-=dynamicScore.dynamicScore.pixelShiftPerMs*descXMsInterval;
 				}
 			}
 			/*
@@ -863,9 +870,9 @@ require(
 			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){ // run through in reverse order so we can splice the array to remove long past elements
 
 				// If its moved out of our score window, delete it from the display list
-				//t_end=time2Px(displayElements[dispElmt].e);
+				//t_end=dynamicScore.time2Px(displayElements[dispElmt].e);
 
-				if (displayElements[dispElmt].e && (time2Px(displayElements[dispElmt].e) < pastLinePx)) {
+				if (displayElements[dispElmt].e && (dynamicScore.time2Px(displayElements[dispElmt].e) < dynamicScore.pastLinePx)) {
 					// remove event from display list
 					console.log("deleting element at time " + displayElements[dispElmt].e);
 					displayElements[dispElmt].destroy();
@@ -876,12 +883,12 @@ require(
 					var dispe = displayElements[dispElmt];	
 
 					//console.log("draw event of type " + dispe.type);				
-					dispe.draw(context, time2Px, nowishP, t_sinceOrigin);
+					dispe.draw(context, dynamicScore.time2Px, dynamicScore.nowishP, dynamicScore.t_sinceOrigin);
 
 
 					// If element is just crossing the "now" line, create little visual explosion
-					if ((dispe.d.length > 0) && nowishP(dispe.d[0][0])){					
-						explosion(time2Px(dispe.d[0][0]), dispe.d[0][1], 5, "#FF0000", 3, "#FFFFFF");
+					if ((dispe.d.length > 0) && dynamicScore.nowishP(dispe.d[0][0])){					
+						explosion(dynamicScore.time2Px(dispe.d[0][0]), dispe.d[0][1], 5, "#FF0000", 3, "#FFFFFF");
 
 					} 
 				}
@@ -891,8 +898,8 @@ require(
 			context.strokeStyle = "#FF0000";	
 			context.lineWidth =1;
 			context.beginPath();					
-			context.moveTo(nowLinePx, 0);
-			context.lineTo(nowLinePx, 1*theCanvas.height);
+			context.moveTo(dynamicScore.nowLinePx, 0);
+			context.lineTo(dynamicScore.nowLinePx, 1*theCanvas.height);
 			context.stroke();
 			context.closePath();
 
@@ -905,7 +912,7 @@ require(
 				//console.log ("slider val is " + timeLockSlider.value);
 
 				sTime=elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
-				sPx= time2Px(sTime);
+				sPx= dynamicScore.time2Px(sTime);
 
 				context.strokeStyle = "#FFFF00";
 				context.lineWidth =1;
@@ -951,7 +958,7 @@ require(
 
 			var z = k_minLineThickness + k_maxLineThickness*leftSlider.value;
 			// time at the "now" line + the distance into the future or past 
-			var t = Date.now()-timeOrigin + px2Time(x);		
+			var t = Date.now()-timeOrigin + dynamicScore.px2Time(x);		
 
 			//console.log("initiateContour with t = " + t)	;
 
@@ -989,7 +996,7 @@ require(
 				current_mgesture.enableEditing(); // enable since it's our own for typing into
 
 				// calculate the length of the text box on the canvas
-				//current_mgesture.addEvent(t + pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z);
+				//current_mgesture.addEvent(t + dynamicScore.pxTimeSpan(context.measureText(m_tTab.currentSelection()).width),y,z);
 
 				// send WHLE GESTRE AT ONCE (no need to send updated data in real time )
 				//comm.sendJSONmsg("beginGesture", {"d":[[t,y,z]], "type": "textEvent", "cont": false, "fields": {"text": m_tTab.currentSelection()} });
@@ -1094,7 +1101,7 @@ require(
 		if (e.ctrlKey){
 			if (e.eventSelection){ // coming from any of the  SVG objects that got selected
 				console.log("DYNAMIC space mouse down with EVENT SELECTION");
-				current_mgesture && current_mgesture.endContour(t_sinceOrigin); 
+				current_mgesture && current_mgesture.endContour(dynamicScore.t_sinceOrigin); 
 				dynamicScore.select(e.eventSelection);
 				return;
 			} 
@@ -1109,13 +1116,13 @@ require(
 		var tempt;
 
 		if (descXButton.toggleState === 1){
-			x = time2Px(px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval);
-			//console.log("descritizing x time to " + (px2TimeO(m.x) - px2TimeO(m.x)%descXMsInterval))
-			//console.log("mouse time is " + px2Time(m.x) + ", mod time is " + px2Time(m.x)%descXMsInterval);
+			x = dynamicScore.time2Px(dynamicScore.px2TimeO(m.x) - dynamicScore.px2TimeO(m.x)%descXMsInterval);
+			//console.log("descritizing x time to " + (dynamicScore.px2TimeO(m.x) - dynamicScore.px2TimeO(m.x)%descXMsInterval))
+			//console.log("mouse time is " + dynamicScore.px2Time(m.x) + ", mod time is " + dynamicScore.px2Time(m.x)%descXMsInterval);
 		}
 
 		// time lock takes prcedence
-		x= (toggleTimeLockP===0) ? x : nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
+		x= (toggleTimeLockP===0) ? x : dynamicScore.nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
 
 
 		if (descYButton.toggleState === 1){
@@ -1145,12 +1152,12 @@ require(
 			if (current_mgesture) {
 
 				// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
-				//tempt=t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+				//tempt=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
 				//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-				console.log("mouse down, ending contour at time " + t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
-				endContour(t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
+				console.log("mouse down, ending contour at time " + dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
+				endContour(dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
 			}
-			phraseLock.value=px2NormFuture(x);
+			phraseLock.value=dynamicScore.px2NormFuture(x);
 			phraseLock.pixelX=x;
 			//console.log("MouseDown: setting phraseLockValue to " + phraseLock.value);
 			if (soundSelect.getModelName()===undefined){
@@ -1164,14 +1171,14 @@ require(
 		if (e.ctrlKey){
 			console.log("onMouseDown: check for selected element");
 			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
-					if (displayElements[dispElmt].touchedP(t_sinceOrigin + px2Time(m.x), m.y)){
+					if (displayElements[dispElmt].touchedP(dynamicScore.t_sinceOrigin + dynamicScore.px2Time(m.x), m.y)){
 						m_selectedElement=displayElements[dispElmt];
 						return; // we are done with MouseDown!
 					}
 			}
 			if (m_selectedElement){
 				//console.log("about to dubplicate elmt of type " + m_selectedElement.type);
-				var tshift = t_sinceOrigin + px2Time(m.x) - m_selectedElement.b;
+				var tshift = dynamicScore.t_sinceOrigin + dynamicScore.px2Time(m.x) - m_selectedElement.b;
 				var yshift = y-m_selectedElement.d[0][1];
 				var newG = m_selectedElement.duplicate(tshift,yshift,scoreEvent(m_selectedElement.type));
 
@@ -1219,15 +1226,15 @@ require(
 	var timerLoop = function(){
 
 		t_myMachineTime = Date.now();
-		t_sinceOrigin = t_myMachineTime-timeOrigin;
+		dynamicScore.t_sinceOrigin = t_myMachineTime-timeOrigin;
 		
-		drawScreen(t_sinceOrigin);
-		ps.drawScreen(t_sinceOrigin);
+		drawScreen(dynamicScore.t_sinceOrigin);
+		ps.drawScreen(dynamicScore.t_sinceOrigin);
 
-		agentMan.agent && agentMan.agent.tick(t_sinceOrigin, displayElements);
+		agentMan.agent && agentMan.agent.tick(dynamicScore.t_sinceOrigin, displayElements);
 
 		// create a display clock tick every 1000 ms
-		while ((t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
+		while ((dynamicScore.t_sinceOrigin-m_lastDisplayTick)>1000){  // can tick more than once if computer went to sleep for a while...
 			m_tickCount++;
 			m_lastDisplayTick += 1000;
 			k_timeDisplayElm.innerHTML=Math.floor(m_lastDisplayTick/1000);
@@ -1241,9 +1248,9 @@ require(
 
 		//-----------  if an event is in the middle of being drawn, send it every sendCurrentEventInterval
 		// send current event data periodically (rather than waiting until it is complete)
-		//console.log("time since origin= " + t_sinceOrigin + ", (t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (t_sinceOrigin-lastSendTimeforCurrentEvent));
-		if ((t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval){
-			//console.log("tick " + t_sinceOrigin);
+		//console.log("time since origin= " + dynamicScore.t_sinceOrigin + ", (dynamicScore.t_sinceOrigin-lastSendTimeforCurrentEvent) = "+ (dynamicScore.t_sinceOrigin-lastSendTimeforCurrentEvent));
+		if ((dynamicScore.t_sinceOrigin-lastSendTimeforCurrentEvent) > sendCurrentEventInterval){
+			//console.log("tick " + dynamicScore.t_sinceOrigin);
 			if (myRoom != []) {
 				//console.log("sending event");
 				if (current_mgesture_2send && (current_mgesture_2send.d.length > 0)) {
@@ -1256,7 +1263,7 @@ require(
 				}
 
 			}
-				lastSendTimeforCurrentEvent=t_sinceOrigin;
+				lastSendTimeforCurrentEvent=dynamicScore.t_sinceOrigin;
 		}
 		
 		//--------------------------------------------------------
