@@ -22,11 +22,11 @@ require.config({
 				return (host );
 			})(),
 
-		"jquery": "http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min"
+		//"jquery": "http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min"
 	}
 });
 define(
-	["require", "jsaSound/jsaSndLib/sliderBox", "jsaSound/jsaSndLib/config", "jsaSound/jsaSndLib/utils", "jquery"],
+	["require", "jsaSound/jsaSndLib/sliderBox", "jsaSound/jsaSndLib/config", "utils"],//, "jquery"],
 	function (require, makeSliderBox, jsaSoundConfig, utils) {
 
 		// This funciton just needs to be run once when a program is loaded. 
@@ -82,7 +82,7 @@ define(
 
 			//$.getJSON("soundList/TestModelDescriptors", function(data){
 				//alert("sound list served from " + soundServer+"soundList/ModelDescriptors")
-			$.getJSON(soundServer+"soundList/ModelDescriptors",  function(data){
+			utils.getJSON(soundServer+"soundList/ModelDescriptors",  function(data){
 
 				//alert("got descriptors");
 				var items = data.jsonItems;

@@ -15,7 +15,8 @@ define(
 
 		exports.lateWindow = 3000; // ms  to allow for events coming in late for "now" from networked participants
 
-
+		exports.futurePortion = 2/3;
+		exports.pastPortion = 1-exports.futurePortion;
 		exports.maxContourWidth=0; //set this in main 
 		return exports;
 });

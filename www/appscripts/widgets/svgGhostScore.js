@@ -31,7 +31,7 @@ define(
         });
         
         svgscore.addEventListener('mousedown', function(event){
-          console.log("delegate mouse down")
+          //console.log("delegate mouse down")
           quickDelegate(event, score);
         });
         svgscore.addEventListener('mouseup', function(event){

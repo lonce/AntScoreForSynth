@@ -87,15 +87,16 @@ define(
 
                     // first, if there is already a note on, visually end it (but don't send a noteoff to the synth)
                     if (lastOn != 0){ 
+                        if (tempNoteSvgRect && (! tempNoteSvgRect.removed)){
+                          pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
+                          tempNoteSvgRect.setAttribute("x", pt.x);
+                          tempNoteSvgRect.setAttribute("y", pt.y);
+                          pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
+                          tempNoteSvgRect.setAttribute("width", pt.x);
 
-                        pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
-                        tempNoteSvgRect.setAttribute("x", pt.x);
-                        tempNoteSvgRect.setAttribute("y", pt.y);
-                        pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
-                        tempNoteSvgRect.setAttribute("width", pt.x);
-
-                        if (ds.nowishP(this.d[n][0])){
-                            //console.log("SWITHCING NOTES from " + lastOn + " to " + eobj.noteNum)
+                          if (ds.nowishP(this.d[n][0])){
+                              //console.log("SWITHCING NOTES from " + lastOn + " to " + eobj.noteNum)
+                          }
                         }
                     }
                     // now save the current note on data
@@ -207,7 +208,9 @@ define(
           }
         }  // closes the draw function 
 
+        //-------------------------------------------------------------------------------
         // draw Static ------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
         m_scoreEvent.drawStatic = function(t, ms2pix, cheight){
 
           ms2pix=svgscore.ms2pix;
@@ -327,7 +330,7 @@ define(
             console.log("ending contour with no dangling notes!!!!!!!!!!!!")
           }
           m_scoreEvent.updateMaxTime();
-          console.log("endContour, setting m_scoreEvent.e to " + m_scoreEvent.e);
+          //console.log("endContour, setting m_scoreEvent.e to " + m_scoreEvent.e);
 
         }
 
@@ -381,7 +384,7 @@ define(
             noteSvgRect.addEventListener("mousedown", function(e){
               //e.stopPropagation();
               e.eventSelection=m_scoreEvent; // let the mouse event propogate, but inform the bubblees that this was a selection event.
-              console.log("click on sbg rect");
+              //console.log("click on sbg rect");
               //m_scoreEvent.select(true);
             });
             svgscore.appendChild(noteSvgRect);
@@ -466,6 +469,7 @@ define(
 
           // remove all the svg elements for this phrase from the score canvas
           if (this.svgElmt) {
+            console.log("deleting circle");
             svgscore.removeChild(this.svgElmt);
           }
           if (this.svgConnectElmt) {
@@ -480,6 +484,11 @@ define(
                 } 
               }             // override to so whatever you need to do to get the element off the screen or whatever
           }
+
+          this.snd && this.snd.setParam("play", 0);
+          this.snd && this.soundbank.releaseSnd(this.snd); 
+          this.snd=null;
+
         }  // destroy
 
 

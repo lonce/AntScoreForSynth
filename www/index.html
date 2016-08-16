@@ -7,6 +7,7 @@
      <!-- <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1.0,user-scalable=no"> -->
      <meta name="viewport" content="initial-scale=1,maximum-scale=1.0,minimum-scale=1.0">
      <script type="text/javascript" data-main="appscripts/main.js" src="jslibs/require.js"></script>
+     <script src="jslibs/jscolor.min.js"></script>
 
   </head>
 <body>
@@ -52,16 +53,16 @@
                           <div align="center">
                             Input Mode:
                           </div>
-                           <div class="radioSelect">
+                           <div class="radioSelect" hidden>
                                 <input type="radio"  name="radioSelect" id="radioSpray" value="spray">Event Spray<br>
                             </div>
-                            <div class="radioSelect">
+                            <div class="radioSelect" hidden>
                                 <input type="radio"  name="radioSelect"   id="radioContour" value="contour">Musical Contour (alt-M)<br>
                             </div>
-                            <div class="radioSelect">
+                            <div class="radioSelect" hidden>
                                 <input type="radio"  name="radioSelect" id="radioText" value="text">Text (alt-T)<br>
                             </div>
-                            <div class="radioSelect" >
+                            <div class="radioSelect" hidden>
                                 <input type="radio"  name="radioSelect" id="radioSelectDuplicate" value="select">Select/Duplicate<br>
                             </div>
                             <div class="radioSelect" hidden>
@@ -175,23 +176,25 @@
 
           </div>
           <div id="block4c">
+
             <div id="block4c1" hidden>
                <div id="chatheader" >
                 Chat
                </div>
-              <textarea id="myChatArea"></textarea>
+              <textarea id="myChatArea" ></textarea>
             </div>
-            <div id="block4c2">
+            <div id="block4c2" hidden>
               <textarea id="publicChatArea" readonly></textarea>
             </div>
 
+
             <svg id="privateSpaceSvg" tabindex="2">
-              <rect id="privateSpaceSvgCanvas" >  
-              </rect>
+              <!-- <rect id="privateSpaceSvgCanvas" >  
+              </rect> -->
             </svg>
 
           </div>
-          <div id="block4d" >
+          <div id="block4d" hidden>
             <div id="soundDiv"> Current Sound
                <select id="newSoundSelector">
                </select><br>

@@ -11,10 +11,15 @@ define(
     var uconfig = {
       "player": undefined,
       "room": [],
+      "color": "",
       "gatekey": (gateKeeperFactory(["resourceLoaded"], // after all keys are set(), function will execute
           function(){
             // replace "loading" with "All ready" and make the submit button available
             legend.innerHTML = "Anticipatory Score";
+            inner_div.appendChild(document.createElement("br"));
+            inner_div.appendChild(document.createTextNode("Colour: "));
+            inner_div.appendChild(color_input);
+            inner_div.appendChild(document.createElement("br"));
             inner_div.appendChild(submit_btn);
           })),
       "report": function(){}
@@ -30,6 +35,13 @@ define(
       submit_btn.type = "button";
       submit_btn.className = "submit";
       submit_btn.value = "Submit";
+
+    var color_input = document.createElement("input");
+      var picker = new jscolor(color_input);
+      picker.fromString("000000");      
+      color_input.className = "color";
+
+
     var legend = document.createElement("legend");
  
  //++++++++++++++++++++++++++++++++++++++++++++++++
@@ -134,6 +146,10 @@ define(
             return;
           }
           element.parentNode.removeChild(element);
+
+
+          uconfig.color=picker.toHEXString();
+
 
           uconfig.fire("submit");
           //c_id(); // call the callback when we have our info

@@ -65,6 +65,15 @@ require(
 			return undefined;
 		}
 
+		var findElmtWithId=function(objArray, id){
+			for(var i=0;i<objArray.length;i++){
+				//console.log("findElmt: obj.gID = " + objArray[i].gID + " (id = " + id + "), and obj.s = " + objArray[i].s + " ( src = " + src + ")");
+				if (objArray[i].gID===id) {
+					return objArray[i];
+				}
+			}
+			return undefined;
+		}
 
 		var colorIDMap=[]; // indexed by client ID
 		var current_remoteEvent=[]; // indexed by client ID
@@ -209,7 +218,7 @@ require(
 
 		dynamicScore.pixelShiftPerMs = 1*theCanvas.width/(config.scoreWindowTimeLength);;
 		dynamicScore.pxPerSec = dynamicScore.pixelShiftPerMs*1000;
-		dynamicScore.nowLinePx = 1*theCanvas.width/3;
+		dynamicScore.nowLinePx = theCanvas.width*config.pastPortion;
 		dynamicScore.pastLinePx = -20; // after which we delete the display elements
 
 		dynamicScore.time2Px=function(time){ // time measured since timeOrigin
@@ -229,7 +238,7 @@ require(
 		}
 
 		dynamicScore.px2NormFuture=function(px){
-			return (dynamicScore.px2Time(px)/((2/3)*config.scoreWindowTimeLength));
+			return (dynamicScore.px2Time(px)/((config.futurePortion)*config.scoreWindowTimeLength));
 		}
 
 
@@ -290,7 +299,7 @@ require(
 		}
 
 
-		var radioSelection = "contour"; // by default
+		var radioSelection = "phrase"; // by default
 
 
 
@@ -453,6 +462,18 @@ require(
 			current_remoteEvent[src]=undefined; // no more data coming
 
 		});
+		//------------------------------------------------------------------------------
+		// Finds the at most one element on the display list from the src with data.gID 
+	// and deletes it
+		comm.registerCallback('delete', function (data, src){
+				var foo = findElmtWithId(displayElements, data.gID);
+				console.log("deleting element");
+				displayElements.remove(foo);
+     			foo.destroy();
+     			
+     			//current_remoteEvent[src]=undefined;
+
+		});
 
 		//---------------------------------------------------------------------------
 		comm.registerCallback('metroPulse', function(data, src) {
@@ -477,20 +498,29 @@ require(
 		// Just make a color for displaying future events from the client with the src ID
 		comm.registerCallback('newmember', function(data, src) {
 			console.log("new member : " + src);
-			colorIDMap[src]=utils.getRandomColor1(100,255,0,120,100,255);			
+			//colorIDMap[src]=utils.getRandomColor1(100,255,0,120,100,255);	
+			// 'twould be nice to sensd this ONLY to the new member '
+			comm.sendJSONmsg("setColor", {"color": colorIDMap[myID]});		
 		});
 		//---------------------------------------------------------------------------
 		// a list of all members including yourself
 		comm.registerCallback('roommembers', function(data, src) {
 			console.log("In rommembers callback, src (to set myID is " + src);
 			myID=src; /// THIS IS WHERE WE FIRST GET IT.
-			colorIDMap[myID]="#00FF00"; // I am always green
+			//colorIDMap[myID]="#00FF00"; // I am always green
+			colorIDMap[myID]=userConfig.color;
+
+			// send everyone our color
+			comm.sendJSONmsg("setColor", {"color": colorIDMap[myID]});
+
+			/*
 			data.forEach(function(m){
 				if (m != myID){
 					console.log("... " + m + " is also in this room");
 					colorIDMap[m]=utils.getRandomColor1(100,255,0,120,100,255);
 				} 
 			});
+			*/
 
 		});
 
@@ -501,7 +531,7 @@ require(
 			//pong.call(this, data[1]);
 			myID=data[0];
 			console.log("***********Server acknowledged, assigned me this.id = " + myID);
-			colorIDMap[myID]="#00FF00";
+			colorIDMap[myID]="#00FF00"; // IS THIS FUNCTION STILL BEING USED??
 
 		});
 
@@ -513,6 +543,13 @@ require(
 				soundbank.addSnd(data[0], sfactory, 12); // max polyphony 
 			});
 
+		});
+
+	//------------------------------------
+			// set the color
+		comm.registerCallback('setColor', function(data, src) {
+			console.log("setColor: " + src + ", " + data["color"])
+			colorIDMap[src]=data["color"]; // set color
 		});
 
 	//------------------------
@@ -533,7 +570,7 @@ require(
       	privateSpaceSvgCanvas.addEventListener("touchend", touch2Mouse.touchHandler, true);
       	privateSpaceSvgCanvas.addEventListener("touchcancel", touch2Mouse.touchHandler, true);    
 
-      	var ps = privateSpaceFactory(privateSpaceSvgCanvas, config.scoreWindowTimeLength*2/3);
+      	var ps = privateSpaceFactory(privateSpaceSvgCanvas, config.scoreWindowTimeLength*config.futurePortion);
 
 		privateSpaceSvgCanvas.addEventListener("mousedown", function(e){
 			var gesture; 
@@ -550,6 +587,7 @@ require(
 				gesture = scoreEvent("phraseGesture");
 				gesture.s= myID;
 				gesture.color="#00FF00";
+				gesture.color = colorIDMap[myID];
 
 				ps.initiateContour(gesture, dynamicScore.t_sinceOrigin, e.offsetX, e.offsetY, k_minLineThickness + k_maxLineThickness*leftSlider.value);
 
@@ -594,10 +632,14 @@ require(
 		theCanvas.addEventListener("focus", function(e){
 			console.log ("Canvas got focus");
 		});
+		
 		theCanvas.addEventListener("blur", function(e){
 			console.log ("Canvas lost focus");
+			t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
+			endContour(t);
 		});
-
+*/
+		/*
 		theCanvas.addEventListener("focusin", function(e){
 			console.log ("Canvas got focusing");
 		});
@@ -658,8 +700,25 @@ require(
      					if(config.webkitAudioEnabled){
 							soundbank.addSnd(12); // max polyphony 
 						}
-						
      				}
+     				break;
+
+     			case 46: 
+     				if (m_selectedElement){
+     					displayElements.remove(m_selectedElement);
+     					comm.sendJSONmsg("delete", {"gID": m_selectedElement.gID});
+						m_selectedElement.destroy();
+						m_selectedElement=null;
+
+     				} else if (current_mgesture){
+     					displayElements.remove(current_mgesture);
+     					comm.sendJSONmsg("delete", {"gID": current_mgesture.gID});
+     					current_mgesture.destroy();
+						current_mgesture=null;
+
+     				}
+     				
+     				return;
 			}
 			if (radioSelection === "phrase"){
 				//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
@@ -682,14 +741,14 @@ require(
 				if (current_mgesture){
 					switch(keyCode){
 						case 13: 
-							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
 							//current_mgesture.updateMaxTime(t);
 							//current_mgesture.addEvent(current_mgesture.e, 0, 0, {"event" : "endPhrase"});
 							endContour(t);
 							//current_mgesture.updateMaxTime();
 							break;
 						default: 
-							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+							t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
 							current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyDown", "key" : e.key}], true);
 							break;
 					}
@@ -707,7 +766,7 @@ require(
          	var keyCode = e.which;
 			var t; 
 			if (! current_mgesture) return;
-			t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+			t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
 			current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
 	     }
 
@@ -728,7 +787,7 @@ require(
 				var tx=m.x;
 				var ty=m.y;
 
-				tx= (toggleTimeLockP===0) ? elapsedtime + dynamicScore.px2Time(m.x) : elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				tx= (toggleTimeLockP===0) ? elapsedtime + dynamicScore.px2Time(m.x) : elapsedtime+config.scoreWindowTimeLength*(config.futurePortion)*timeLockSlider.value;
 
 				//Descretize the new point in time and height
 				if (descXButton.toggleState === 1){ 
@@ -797,7 +856,7 @@ require(
  
  			// Draw scrolling sprockets--
  			context.fillStyle = "#999999";
- 			var sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%sprocketInterval;
+ 			var sTime = (elapsedtime+config.scoreWindowTimeLength*(config.futurePortion))- (elapsedtime+config.scoreWindowTimeLength*(config.futurePortion))%sprocketInterval;
  			//console.log("sprocket stime: " + sTime);
 			var sPx= dynamicScore.time2Px(sTime);
 			//console.log("t since origin is " + dynamicScore.t_sinceOrigin + ", and sTime is " + sTime);
@@ -819,7 +878,7 @@ require(
 			if (descXButton.toggleState===1){
 				context.lineWidth =1;
 				context.strokeStyle = "#333";
-				sTime = (elapsedtime+config.scoreWindowTimeLength*(2/3))- (elapsedtime+config.scoreWindowTimeLength*(2/3))%(descXMsInterval);
+				sTime = (elapsedtime+config.scoreWindowTimeLength*(config.futurePortion))- (elapsedtime+config.scoreWindowTimeLength*(config.futurePortion))%(descXMsInterval);
 				//console.log("descX sTime: " + sTime);
 				//console.log(" ");
 				var start_sPx= dynamicScore.time2Px(sTime);
@@ -912,7 +971,7 @@ require(
 			if (toggleTimeLockP===1){
 				//console.log ("slider val is " + timeLockSlider.value);
 
-				sTime=elapsedtime+config.scoreWindowTimeLength*(2/3)*timeLockSlider.value;
+				sTime=elapsedtime+config.scoreWindowTimeLength*(config.futurePortion)*timeLockSlider.value;
 				sPx= dynamicScore.time2Px(sTime);
 
 				context.strokeStyle = "#FFFF00";
@@ -1032,7 +1091,8 @@ require(
 
 			// For all new gestures: 
 			current_mgesture.s= myID;
-			current_mgesture.color="#00FF00";
+			//current_mgesture.color="#00FF00";
+			current_mgesture.color=colorIDMap[myID];
 
 			current_mgesture.addEvent([t,y,z], true);
 			current_mgesture.updateMinTime();
@@ -1101,7 +1161,7 @@ require(
 
 		if (e.ctrlKey){
 			if (e.eventSelection){ // coming from any of the  SVG objects that got selected
-				console.log("DYNAMIC space mouse down with EVENT SELECTION");
+				//console.log("DYNAMIC space mouse down with EVENT SELECTION");
 				current_mgesture && current_mgesture.endContour(dynamicScore.t_sinceOrigin); 
 				dynamicScore.select(e.eventSelection);
 				return;
@@ -1123,7 +1183,7 @@ require(
 		}
 
 		// time lock takes prcedence
-		x= (toggleTimeLockP===0) ? x : dynamicScore.nowLinePx+1*theCanvas.width*(2/3)*timeLockSlider.value;
+		x= (toggleTimeLockP===0) ? x : dynamicScore.nowLinePx+1*theCanvas.width*(config.futurePortion)*timeLockSlider.value;
 
 
 		if (descYButton.toggleState === 1){
@@ -1153,10 +1213,10 @@ require(
 			if (current_mgesture) {
 
 				// first send a "note off" event to the current gesture if someone is holding down a key while trying to start a new gesture
-				//tempt=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value;
+				//tempt=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
 				//current_mgesture.addEvent([tempt, 0, leftSlider.value, {"event" : "keyUp", "key" : e.key}], true);
-				console.log("mouse down, ending contour at time " + dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value);
-				endContour(dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(2/3)*phraseLock.value, 0);
+				console.log("mouse down, ending contour at time " + dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value);
+				endContour(dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value, 0);
 			}
 			phraseLock.value=dynamicScore.px2NormFuture(x);
 			phraseLock.pixelX=x;
@@ -1299,8 +1359,8 @@ require(
 
 
 		// INITIALIZATIONS --------------------
-		radioContour.checked=true; // initialize
-		setTab("contourTab");
+		radioPhrase.checked=true; // initialize
+		setTab("phraseTab");
 
 	}
 );

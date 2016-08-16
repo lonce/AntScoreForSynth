@@ -6,7 +6,15 @@ function () {
 		//var height = svgCanvas.getBoundingClientRect().height;
 		var pixPerMs = svgCanvas.getBoundingClientRect().width/timespan; 
 
-		//--------   make a canvas into a canvasScore ------//
+		//--------   make a canvas into a canvasScore by adding methods------//
+		var svgBkgd = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+		svgBkgd.setAttribute("x", 0);
+		svgBkgd.setAttribute("y", 0);
+		svgBkgd.setAttribute("width", svgCanvas.getBoundingClientRect().width);
+		svgBkgd.setAttribute("height", svgCanvas.getBoundingClientRect().height);
+		svgBkgd.setAttribute("fill", "#707070"); 
+		svgCanvas.appendChild(svgBkgd);
+
 		svgCanvas.getHeight = function(){
 			return svgCanvas.getBoundingClientRect().height;
 		}
