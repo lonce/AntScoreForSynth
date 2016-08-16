@@ -186,7 +186,7 @@ define(
 				function (currentSMFactory) {
 					if (path.indexOf("jsaSound/") === 0){
 						path = path.substr("jsaSound/".length);
-						console.log("loadSoundFromPath: " + path);
+						//console.log("loadSoundFromPath: " + path);
 						cb(currentSMFactory);
 					}
 				}

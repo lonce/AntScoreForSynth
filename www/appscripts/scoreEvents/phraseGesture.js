@@ -119,7 +119,7 @@ define(
                     if ((pt.x + temp.x) < 0){ // prevents laggy performance when there are lots of events on a long phrase gesture
                         svgscore.removeChild(tempNoteSvgRect);
                         tempNoteSvgRect.removed=true;
-                        console.log("removed a phrase elemt rect");
+                        //console.log("removed a phrase elemt rect");
                     }
 
                     // if there is, in fact, a note currently on, then draw the box
@@ -132,7 +132,7 @@ define(
 
                       if (ds.latishP(this.d[n][0]) && (! eobj.played)){
                        this.snd && this.snd.setParam("play", 0);
-                       console.log("release dnum = " + n + ", note " + eobj.noteNum);
+                       //console.log("release dnum = " + n + ", note " + eobj.noteNum);
                        this.snd && this.soundbank.releaseSnd(this.snd); 
                        this.snd=null;
                        eobj.played=true;    
@@ -295,7 +295,7 @@ define(
             tempNoteSvgRect.setAttribute("x", tempNoteOnX);
             tempNoteSvgRect.setAttribute("y", tempNoteOnY);
 
-            console.log("dangler width in pixels is " + ms2pix(t-tempNoteOnT));
+            //console.log("dangler width in pixels is " + ms2pix(t-tempNoteOnT));
             tempNoteSvgRect.setAttribute("width", ms2pix(t-tempNoteOnT)); 
 
             dangling = lastOn;
@@ -327,7 +327,7 @@ define(
             console.log("adding noteoff for laston");
             m_scoreEvent.d.push(augEvent);
           } else{
-            console.log("ending contour with no dangling notes!!!!!!!!!!!!")
+            //console.log("ending contour with no dangling notes!!!!!!!!!!!!")
           }
           m_scoreEvent.updateMaxTime();
           //console.log("endContour, setting m_scoreEvent.e to " + m_scoreEvent.e);
@@ -469,7 +469,7 @@ define(
 
           // remove all the svg elements for this phrase from the score canvas
           if (this.svgElmt) {
-            console.log("deleting circle");
+            //console.log("deleting circle");
             svgscore.removeChild(this.svgElmt);
           }
           if (this.svgConnectElmt) {

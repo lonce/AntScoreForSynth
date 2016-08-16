@@ -22,22 +22,25 @@ function () {
 		svgCanvas.ms2pix=function(ms){
 			return pixPerMs*ms;
 		}
+
+		svgCanvas.addEventListener("SVGResize", function(e){
+			console.log("svg resize");
+		})
 		//---------------------------------------------------//
 		
 		//svgCanvas.AAAAAAAAA = "AAAAAAAAAAA";
 
 
 		privateSpace.displayElements=[]; // list of score elememnts
-
-
-
-
 		privateSpace.currentGesture=null; // the one in the middle of being drawn
-
-
-
+		privateSpace.selectedElement=null; // the one in the middle of being drawn
 
 		privateSpace.initiateContour = function(g, t, x,y, z){
+
+			if (privateSpace.currentGesture){
+				privateSpace.endContour();
+			}
+
 			//console.log("begin static pgesture on canvas with height = " + height + ", at point [" + x + ", " + y + "]" + "  with a pixPerMs = " + pixPerMs);
 			g.clientX = x;
 			g.clientY = y;
@@ -54,12 +57,30 @@ function () {
 		privateSpace.keyDown = function(e, t, z, radioSelection){
 			if (e.repeat) return;
          		var keyCode = e.which;
-         		if (keyCode===17) return; // ignore ctl key
-         		if (keyCode === 27) { // escape key unselects 
-         			//dynamicScore.select();
-         			privateSpace.select();
-         			//m_selectedElement = undefined;
-         		}
+
+         		switch (keyCode){
+    
+	         		case 17: return;   // ignore CTL key
+	         		case 27: {		   // ESC to unselect
+	         			privateSpace.select();
+	         			return;
+	         		}
+
+					case 46: // windows delete key
+	     			case 8: // mac delete key
+	     				if (privateSpace.selectedElement){
+	     					privateSpace.displayElements.remove(privateSpace.selectedElement);
+							privateSpace.selectedElement.destroy();
+							privateSpace.selectedElement=null;
+
+	     				} else if (privateSpace.currentGesture){
+	     					privateSpace.displayElements.remove(privateSpace.currentGesture);
+	     					privateSpace.currentGesture.destroy();
+							privateSpace.currentGesture=null;
+
+	     				}
+	     				return;
+     			}
 
 
 				if (radioSelection === "phrase"){
@@ -118,6 +139,7 @@ function () {
 					}
 			}
 			g && g.select(true);
+			privateSpace.selectedElement=g;
 			g && g.drawStatic();
 
 		}

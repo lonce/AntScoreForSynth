@@ -20,7 +20,7 @@ define(
             drawID: false, 
             font: "12px Arial",     
             selectedP: false,
-            gID: gID_counter++,              // unique id for this gesture
+            gID: Math.floor(Math.random() * 1000000),// gID_counter++,              // unique id for this gesture
                       // id for the source (the networked participant)
             sendData : {type: i_type, d: []} ,//, s: myID}, // a list of [t,y,z,{}] points to send to other participants; emptied after every send. 
 

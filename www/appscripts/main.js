@@ -209,7 +209,7 @@ require(
 				// now make the new selection
 				g.select(true);
 				m_selectedElement=g;
-				console.log("dynamic score element being selected")
+				console.log("LOCAL selected " + g.gID)
 			}
 		}
 
@@ -404,7 +404,7 @@ require(
 			// automatically fill any fields of the new scoreEvent sent
 			for (fname in data.fields){
 				current_remoteEvent[src][fname]=data.fields[fname];
-				console.log("adding fields " + fname + " = " + data.fields[fname])
+				//console.log("adding fields " + fname + " = " + data.fields[fname])
 			}
 
 			
@@ -422,7 +422,7 @@ require(
 
 			//current_remoteEvent[src].b=data.d[0][0];
 			//current_remoteEvent[src].e=data.d[data.d.length-1][0];
-			console.log("Begin Gesture: END TIME NOW " + current_remoteEvent[src].e);
+			//console.log("Begin Gesture: END TIME NOW " + current_remoteEvent[src].e);
 
 			current_remoteEvent[src].soundbank=soundbank;
 
@@ -454,10 +454,10 @@ require(
 		//---------------------------------------------------------------------------
 		// data is [timestamp (relative to "now"), x,y] of mouseContourGesture, and src is the id of the clicking client
 		comm.registerCallback('endGesture', function(data, src) {
-			console.log("end gester received");
+			//console.log("end gester received");
 			if (data.length >=1){
 				current_remoteEvent[src].e=data[0];
-				console.log("ending remote gesture, gesture.e = " + data[0]);
+				//console.log("ending remote gesture, gesture.e = " + data[0]);
 			}
 			current_remoteEvent[src]=undefined; // no more data coming
 
@@ -466,8 +466,8 @@ require(
 		// Finds the at most one element on the display list from the src with data.gID 
 	// and deletes it
 		comm.registerCallback('delete', function (data, src){
+				console.log("COMMS delete element with gID " + data.gID);
 				var foo = findElmtWithId(displayElements, data.gID);
-				console.log("deleting element");
 				displayElements.remove(foo);
      			foo.destroy();
      			
@@ -483,7 +483,7 @@ require(
 		});
 		//---------------------------------------------------------------------------
 		comm.registerCallback('startTime', function(data) {
-			console.log("server startTime = " + data[0] );
+			//console.log("server startTime = " + data[0] );
 
 			clearScore();
 			agentMan.agent && agentMan.agent.reset();
@@ -537,9 +537,9 @@ require(
 
 
 		comm.registerCallback('addToSoundbank', function(data, src) {
-			console.log("add to soundbank for remote client " + data[0]);
+			//console.log("add to soundbank for remote client " + data[0]);
 			soundSelect.loadSound(data[0],function(sfactory){
-				console.log("loaded sound for remote client")
+				//console.log("loaded sound for remote client")
 				soundbank.addSnd(data[0], sfactory, 12); // max polyphony 
 			});
 
@@ -548,7 +548,7 @@ require(
 	//------------------------------------
 			// set the color
 		comm.registerCallback('setColor', function(data, src) {
-			console.log("setColor: " + src + ", " + data["color"])
+			//console.log("setColor: " + src + ", " + data["color"])
 			colorIDMap[src]=data["color"]; // set color
 		});
 
@@ -583,7 +583,14 @@ require(
 				dynamicScore.select(false);
 				m_selectedElement = e.eventSelection;
 
-			} else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
+			} /*else if (m_selectedElement && e.ctrlKey){  // duplicate from dynamic to static score
+				var newG = m_selectedElement.duplicate(0,e.offsetY,scoreEvent(m_selectedElement.type));
+
+				m_selectedElement.select(false);
+				m_selectedElement=newG;
+				ps.select(e.eventSelection);
+
+			}*/ else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
 				gesture = scoreEvent("phraseGesture");
 				gesture.s= myID;
 				gesture.color="#00FF00";
@@ -601,7 +608,7 @@ require(
 
 
 		privateSpaceSvgCanvas.addEventListener("keydown", function(e){
-			console.log("keydown on privateSpaceSvgCanvas");
+			//console.log("keydown on privateSpaceSvgCanvas");
 			ps.keyDown(e, dynamicScore.t_sinceOrigin, leftSlider.value, radioSelection);
 		}, true);
 
@@ -703,15 +710,18 @@ require(
      				}
      				break;
 
-     			case 46: 
+     			case 46: // windows delete key
+     			case 8: // mac delete key
      				if (m_selectedElement){
      					displayElements.remove(m_selectedElement);
+     					console.log("LOCAL deleting element with gID = " + m_selectedElement.gID);
      					comm.sendJSONmsg("delete", {"gID": m_selectedElement.gID});
 						m_selectedElement.destroy();
 						m_selectedElement=null;
 
      				} else if (current_mgesture){
      					displayElements.remove(current_mgesture);
+     					console.log("LOCAL deleting element with gID = " + current_mgesture.gID);
      					comm.sendJSONmsg("delete", {"gID": current_mgesture.gID});
      					current_mgesture.destroy();
 						current_mgesture=null;
@@ -1084,6 +1094,7 @@ require(
 				current_mgesture.soundName = soundSelect.getModelName();
 				current_mgesture.param1=soundSelect.getSelectedParamName(1);
 				current_mgesture.param2=soundSelect.getSelectedParamName(2);
+				console.log("LOCAL: sending gesture with gID = " + current_mgesture.gID)
 
 				comm.sendJSONmsg("beginGesture", {"time": t, "type": "phraseGesture", "gID": current_mgesture.gID, "cont": true, "fields": current_mgesture.getKeyFields() });
 
@@ -1118,7 +1129,7 @@ require(
 			current_mgesture.updateMaxTime();
 			//console.log("gesture.b= "+current_mgesture.b + ", and gesture.e= "+current_mgesture.e);
 			
-			console.log("ending contour .... is it empptyP ?  ..... " + current_mgesture.emptyP())
+			//console.log("ending contour .... is it empptyP ?  ..... " + current_mgesture.emptyP())
 
 			if (myRoom != []) {
 				//console.log("sending event");
@@ -1132,17 +1143,18 @@ require(
 				//"new" api to purge main.js of any "current_mgesture_2send" crap.
 				if (current_mgesture.type==="phraseGesture"){ // only phraseGesture uses new api so far.
 					current_mgesture.sendContinuation();
-					console.log("local end contour, with contour.e = " + current_mgesture.e)
+					//console.log("local end contour, with contour.e = " + current_mgesture.e)
 					comm.sendJSONmsg("endGesture", [current_mgesture.e]);
 				}
 
 			}
 
 
-			console.log("main . endContour, call gesture.endContour")
+			//console.log("main . endContour, call gesture.endContour")
 			current_mgesture.endContour(t);
 
 			if (current_mgesture.emptyP()){
+				comm.sendJSONmsg("delete", {"gID": current_mgesture.gID});
 				displayElements.remove(current_mgesture);
 				current_mgesture.destroy();
 			}
@@ -1230,7 +1242,7 @@ require(
 		// now either select a duplicate a selected contour or initiate a new one.
 		//if (m_currentTab === "selectTab"){
 		if (e.ctrlKey){
-			console.log("onMouseDown: check for selected element");
+			//console.log("onMouseDown: check for selected element");
 			for(dispElmt=displayElements.length-1;dispElmt>=0;dispElmt--){
 					if (displayElements[dispElmt].touchedP(dynamicScore.t_sinceOrigin + dynamicScore.px2Time(m.x), m.y)){
 						m_selectedElement=displayElements[dispElmt];
@@ -1252,7 +1264,7 @@ require(
 				}
 				
 
-				comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
+				comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "gID": newG.gID, "fields": newG.getKeyFields() });
 				m_selectedElement.select(false);
 				newG.select(true);
 				m_selectedElement=newG;
