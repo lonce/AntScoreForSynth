@@ -16,14 +16,15 @@ define(
             // args: 
             //  ctx - 2D canvax drawing contex
             //  time2Px = function for translating the time sampls on these objects to pixel for drawing
-         m_scoreEvent.draw = function(ctx, time2Px, nowishP, now){
-               if (this.d.length <=0 ) return;
-               if (this.selectedP){
-                  this.drawSelected(ctx,time2Px);
-               }
-               this.drawpolygon(ctx, time2Px, nowishP, now);
-               this.sonify(ctx, nowishP, now);
-            };
+         m_scoreEvent.draw = function(ds){
+            var ctx=ds.canvas.getContext("2d");
+            if (this.d.length <=0 ) return;
+            if (this.selectedP){
+               this.drawSelected(ctx,ds.time2Px);
+            }
+            this.drawpolygon(ctx, ds.time2Px, ds.nowishP, ds.getScoreTime());
+            this.sonify(ctx, ds.nowishP, ds.getScoreTime());
+         };
 
          m_scoreEvent.drawpolygon = function(ctx, time2Px, nowishP, now){
             var dispPx=time2Px(this.d[0][0]);

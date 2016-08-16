@@ -71,13 +71,15 @@ define(
          }
          
 
-         m_scoreEvent.draw = function(ctx, time2Px, nowishP, now){
+         m_scoreEvent.draw = function(ds){
+          var ctx=ds.canvas.getContext("2d");
+
           if (this.d.length <=0) return;
           
           if (this.selectedP){
-             this.drawSelected(ctx,time2Px);
+             this.drawSelected(ctx,ds.time2Px);
           }
-          this.myDraw(ctx, time2Px(this.d[0][0])  , this.d[0][1] );
+          this.myDraw(ctx, ds.time2Px(this.d[0][0]), this.d[0][1] );
          }
 
 

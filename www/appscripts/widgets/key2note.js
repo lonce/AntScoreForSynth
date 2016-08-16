@@ -4,16 +4,15 @@ function () {
 	key2note = {};
 
 	var basic = {};
-	basic.a = 63;
-	basic.s = 65;
-	basic.d = 67;
-	basic.f = 68;
-	basic.g = 70;
-	basic.h = 72;
-	basic.j = 74;
-	basic.k = 75; 
-
-	basic.l = 77;
+	basic.a = basic.A = 63;
+	basic.s = basic.S = 65;
+	basic.d = basic.D = 67;
+	basic.f = basic.F = 68;
+	basic.g = basic.G = 70;
+	basic.h = basic.H = 72;
+	basic.j = basic.J = 74;
+	basic.k = basic.K = 75; 
+	basic.l = basic.L = 77;
 	
 	key2note.map=function(letter){
 		return basic[letter];

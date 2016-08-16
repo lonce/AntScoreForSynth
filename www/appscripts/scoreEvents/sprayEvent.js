@@ -10,18 +10,18 @@ define(
          var soundName;// name of sound this event will play
          var param1, param2; // the string names of the parameters of the sound associated with this event
 
-          m_scoreEvent.draw = function(ctx, time2Px, nowishP){
-
+          m_scoreEvent.draw = function(ds){
+               var ctx=ds.canvas.getContext("2d");
                var dispPx;
 
                if (this.selectedP){
-                  this.drawSelected(ctx,time2Px);
+                  this.drawSelected(ctx,ds.time2Px);
                }
 
                for(var n=0;n<this.d.length;n++){    
-                  dispPx=time2Px(this.d[n][0]);  
+                  dispPx=ds.time2Px(this.d[n][0]);  
 
-                  if (nowishP(this.d[n][0])){
+                  if (ds.nowishP(this.d[n][0])){
                      this.snd=this.soundbank.getSnd(this.soundName);
                      this.snd && this.snd.setParamNorm(this.param1, 1-this.d[n][1]/ctx.canvas.height);
                      this.snd && this.snd.setParamNorm(this.param2, kScaleMI*(1-this.d[n][2]/config.maxContourWidth));

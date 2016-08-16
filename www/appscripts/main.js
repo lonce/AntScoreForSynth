@@ -204,15 +204,52 @@ require(
 			}
 		}
 
+				var theCanvas = document.getElementById("score");
+		dynamicScore.canvas = theCanvas; // eventuall remove theCanvas from global name space
+
+		dynamicScore.pixelShiftPerMs = 1*theCanvas.width/(config.scoreWindowTimeLength);;
+		dynamicScore.pxPerSec = dynamicScore.pixelShiftPerMs*1000;
+		dynamicScore.nowLinePx = 1*theCanvas.width/3;
+		dynamicScore.pastLinePx = -20; // after which we delete the display elements
+
+		dynamicScore.time2Px=function(time){ // time measured since timeOrigin
+			return dynamicScore.nowLinePx+(time-dynamicScore.t_sinceOrigin)*dynamicScore.pixelShiftPerMs;
+		}
+
+		dynamicScore.px2Time=function(px){  // relative to the now line
+			return (px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
+		}
+
+		dynamicScore.px2TimeO=function(px){  // relative to origin
+			return dynamicScore.t_sinceOrigin+(px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
+		}
+
+		dynamicScore.pxTimeSpan=function(px){  //units of ms
+			return (px/dynamicScore.pixelShiftPerMs);
+		}
+
+		dynamicScore.px2NormFuture=function(px){
+			return (dynamicScore.px2Time(px)/((2/3)*config.scoreWindowTimeLength));
+		}
+
+
+		var lastDrawTime=0;
+		dynamicScore.t_sinceOrigin = 0;
+
+		dynamicScore.nowishP = function(t){
+			if ((t > lastDrawTime) && (t <= dynamicScore.t_sinceOrigin)) return true;
+		}
+
+
 		dynamicScore.latishP = function(t) {
 			if ((t > dynamicScore.t_sinceOrigin - config.lateWindow) && (t <= dynamicScore.t_sinceOrigin)) return true;
 		}
 
 
-		var getScoreTime=function(){
+		dynamicScore.getScoreTime=function(){
 			return dynamicScore.t_sinceOrigin;
 		}
-		dynamicScore.getScoreTime=getScoreTime;
+
 
 		var m_chatter=chatter(window.document.getElementById("publicChatArea"),
 			window.document.getElementById("myChatArea"), dynamicScore.getScoreTime);
@@ -536,18 +573,11 @@ require(
 
 
 
-		var theCanvas = document.getElementById("score");
-		dynamicScore.canvas = theCanvas; // eventuall remove theCanvas from global name space
 
 		var context = theCanvas.getContext("2d");
 		var mouseX;
 		var mouseY;
 		context.font="9px Arial";
-
-		dynamicScore.pixelShiftPerMs = 1*theCanvas.width/(config.scoreWindowTimeLength);;
-		dynamicScore.pxPerSec = dynamicScore.pixelShiftPerMs*1000;
-		dynamicScore.nowLinePx = 1*theCanvas.width/3;
-		dynamicScore.pastLinePx = -20; // after which we delete the display elements
 
 		var sprocketHeight=2;
 		var sprocketWidth=1;
@@ -575,35 +605,6 @@ require(
 			console.log ("Canvas lost focus");
 		});
 		*/
-
-		dynamicScore.time2Px=function(time){ // time measured since timeOrigin
-			return dynamicScore.nowLinePx+(time-dynamicScore.t_sinceOrigin)*dynamicScore.pixelShiftPerMs;
-		}
-
-		dynamicScore.px2Time=function(px){  // relative to the now line
-			return (px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
-		}
-
-		dynamicScore.px2TimeO=function(px){  // relative to origin
-			return dynamicScore.t_sinceOrigin+(px-dynamicScore.nowLinePx)/dynamicScore.pixelShiftPerMs;
-		}
-
-		dynamicScore.pxTimeSpan=function(px){  //units of ms
-			return (px/dynamicScore.pixelShiftPerMs);
-		}
-
-		dynamicScore.px2NormFuture=function(px){
-			return (dynamicScore.px2Time(px)/((2/3)*config.scoreWindowTimeLength));
-		}
-
-
-		var lastDrawTime=0;
-
-		dynamicScore.t_sinceOrigin = 0;
-
-		dynamicScore.nowishP = function(t){
-			if ((t > lastDrawTime) && (t <= dynamicScore.t_sinceOrigin)) return true;
-		}
 
 	
 
@@ -874,7 +875,7 @@ require(
 
 				if (displayElements[dispElmt].e && (dynamicScore.time2Px(displayElements[dispElmt].e) < dynamicScore.pastLinePx)) {
 					// remove event from display list
-					console.log("deleting element at time " + displayElements[dispElmt].e);
+					//console.log("deleting element at time " + displayElements[dispElmt].e);
 					displayElements[dispElmt].destroy();
 					displayElements.splice(dispElmt,1);
 
@@ -883,7 +884,7 @@ require(
 					var dispe = displayElements[dispElmt];	
 
 					//console.log("draw event of type " + dispe.type);				
-					dispe.draw(context, dynamicScore.time2Px, dynamicScore.nowishP, dynamicScore.t_sinceOrigin);
+					dispe.draw(dynamicScore);
 
 
 					// If element is just crossing the "now" line, create little visual explosion
@@ -1194,6 +1195,7 @@ require(
 				comm.sendJSONmsg("beginGesture", {"d":newG.d, "type": m_selectedElement.type, "cont": false, "fields": newG.getKeyFields() });
 				m_selectedElement.select(false);
 				newG.select(true);
+				m_selectedElement=newG;
 				displayElements.push(newG);
 			}
 

@@ -8,6 +8,7 @@ define(
       return function (arg){
 
         var svgscore = document.getElementById("svgscore"); // by default, but this can be set with setScore
+        svgscore.AAAAAAAAAAAAA = "AAAAAAAAAAAAAA"
         var score = document.getElementById("score");
 
         //console.log("+++++++++initially, my phrasselock is " + arg);
@@ -17,6 +18,7 @@ define(
         var dangling = 0;
 
         var pt = {}; // will hold {x: , y:  }
+        var temp = {}; // will hold {x: , y:  }
         var pathString = "";
 
 
@@ -29,9 +31,12 @@ define(
         //m_scoreEvent.phraseLock = arg; 
         m_scoreEvent.phraseLock = arg; 
 
+        //---------------------------------------------------------------------
+        // called periodically by scrolling score -----------------------------
+        //---------------------------------------------------------------------
+        m_scoreEvent.draw = function(ds){
+          var ctx=ds.canvas.getContext("2d");
 
-        // called periodically by scrolling score ---------------------------------------------
-        m_scoreEvent.draw = function(ctx, time2Px, nowishP){
           var dispPx;
           var dispPy;
 
@@ -48,118 +53,133 @@ define(
 
           gesturePath=[];
 
-
           ctx.fillStyle = this.color;
 
-
-
           for(var n=0;n<this.d.length;n++){    
-            dispPx=time2Px(this.d[n][0]);  
+            dispPx=ds.time2Px(this.d[n][0]);  
 
             if (this.d[n].length >=4){
               eobj=this.d[n][3];
-              dispPy=shiftscale(eobj.noteNum, minNote, maxNote, cheight, 0);
-              if (eobj.event === "noteOn"){
+              
 
-                if (nowishP(this.d[n][0])){
-                  if (monophonic){
-                    if (! this.snd){
-                      this.snd=this.soundbank.getSnd(this.soundName);
-                        //console.log("ok, got sound " + this.soundName)
+                dispPy=shiftscale(eobj.noteNum, minNote, maxNote, cheight, 0);
+                if (eobj.event === "noteOn"){
+                  if (! eobj.noteSvgRect.removed){
+
+                    if (ds.latishP(this.d[n][0]) && (! eobj.played)){
+                      if (monophonic){
+                        if (! this.snd){
+                          this.snd=this.soundbank.getSnd(this.soundName);
+                            //console.log("ok, got sound " + this.soundName)
+                        }
+                      }
+                      this.snd && this.snd.setParamNorm(this.param1, 1-dispPy/ctx.canvas.height);
+                      this.snd && this.snd.setParamNorm(this.param2, 1-this.d[n][2]);
+                      this.snd && this.snd.setParam("play", 1);
+                      eobj.played=true;
+                      //console.log("NOTEON : " + eobj.noteNum); 
+                      //console.log("play  dnum = " + n + ", note " + eobj.noteNum);
                     }
-                  }
-                  this.snd && this.snd.setParamNorm(this.param1, 1-dispPy/ctx.canvas.height);
-                  this.snd && this.snd.setParamNorm(this.param2, 1-this.d[n][2]);
-                  this.snd && this.snd.setParam("play", 1);
-                  eobj.played=true;
-                  //console.log("NOTEON : " + eobj.noteNum); 
-                  console.log("play");
-                }
 
-                // push note on
-                //console.log("push note on " + dispPx + " , " + dispPy);
-                //gesturePath.push({x : dispPx, y: dispPy});
+                    // push note on
+                    //console.log("push note on " + dispPx + " , " + dispPy);
+                    //gesturePath.push({x : dispPx, y: dispPy});
 
-                // first, if there is already a note on, visually end it (but don't send a noteoff to the synth)
-                if (lastOn != 0){ 
+                    // first, if there is already a note on, visually end it (but don't send a noteoff to the synth)
+                    if (lastOn != 0){ 
 
-                  pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
-                  tempNoteSvgRect.setAttribute("x", pt.x);
-                  tempNoteSvgRect.setAttribute("y", pt.y);
-                  pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
-                  tempNoteSvgRect.setAttribute("width", pt.x);
+                        pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
+                        tempNoteSvgRect.setAttribute("x", pt.x);
+                        tempNoteSvgRect.setAttribute("y", pt.y);
+                        pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
+                        tempNoteSvgRect.setAttribute("width", pt.x);
 
-                  if (nowishP(this.d[n][0])){
-                      //console.log("SWITHCING NOTES from " + lastOn + " to " + eobj.noteNum)
-                  }
+                        if (ds.nowishP(this.d[n][0])){
+                            //console.log("SWITHCING NOTES from " + lastOn + " to " + eobj.noteNum)
+                        }
+                    }
+                    // now save the current note on data
+                    tempNoteOnY=dispPy;
+                    tempNoteOnX=dispPx;
+                    tempNoteSvgRect = eobj.noteSvgRect;
+                    lastOn = eobj.noteNum;
 
-                }
-                // now save the current note on data
-                tempNoteOnY=dispPy;
-                tempNoteOnX=dispPx;
-                tempNoteSvgRect = eobj.noteSvgRect;
-                lastOn = eobj.noteNum;
+                  } // if svg rect not removed
 
-              } // if eobj.event === noteOn
+                } // if eobj.event === noteOn
 
-              if (eobj.event === "noteOff"){
-                // if there is, in fact, a note current on, then draw the box
-                if (lastOn === eobj.noteNum){//(tempNoteOnX != -1){ 
+                if (eobj.event === "noteOff"){
 
-                  pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
-                  tempNoteSvgRect.setAttribute("x", pt.x);
-                  tempNoteSvgRect.setAttribute("y", pt.y);
-                  pt = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
-                  tempNoteSvgRect.setAttribute("width", pt.x);
+                  if (tempNoteSvgRect && (! tempNoteSvgRect.removed)){
 
-                  if (nowishP(this.d[n][0])){
-                   this.snd && this.snd.setParam("play", 0);
-                   console.log("release");
-                   this.snd && this.soundbank.releaseSnd(this.snd); 
-                   this.snd=null;
-                   eobj.played=true;    
-                   //console.log("NOTEOFF ( " + eobj.noteNum + ") ")  ;
-                   
-                 }
+                    pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
+                    temp = utils.canvas2Px(score, {x: dispPx-tempNoteOnX, y: 0});
 
-                 lastOn=0;
-               } else {
+                    if ((pt.x + temp.x) < 0){ // prevents laggy performance when there are lots of events on a long phrase gesture
+                        svgscore.removeChild(tempNoteSvgRect);
+                        tempNoteSvgRect.removed=true;
+                        console.log("removed a phrase elemt rect");
+                    }
 
-                  if (nowishP(this.d[n][0])){
-                    //console.log("NOWISH NOTEOFF ( " + eobj.noteNum + ") IGNORED")  ;
-                  }
-                }
-             }
+                    // if there is, in fact, a note currently on, then draw the box
+                    if (lastOn === eobj.noteNum){//(tempNoteOnX != -1){ 
 
-           } else {  // [t,y,z, obj], there is no object on this array element 
-             dispPy = this.d[n][1]
-           }  
-             // Display the dot signalling the beginning of the gesture 
-           if (n===0){
-              // Set any attributes as desired
-              pt = utils.canvas2Px(score, {x: dispPx, y: dispPy});
-              this.svgElmt.setAttribute("cx", pt.x);
-              this.svgElmt.setAttribute("cy", pt.y);
-              // Add to a parent node; document.documentElement should be the root svg element.
+                      tempNoteSvgRect.setAttribute("x", pt.x);
+                      tempNoteSvgRect.setAttribute("y", pt.y);
+                      tempNoteSvgRect.setAttribute("width", temp.x);
 
-              //console.log("push NO NOTE " + dispPx + " , " + dispPy);
-              gesturePath.push({x : dispPx, y: dispPy});
-            }
 
+                      if (ds.latishP(this.d[n][0]) && (! eobj.played)){
+                       this.snd && this.snd.setParam("play", 0);
+                       console.log("release dnum = " + n + ", note " + eobj.noteNum);
+                       this.snd && this.soundbank.releaseSnd(this.snd); 
+                       this.snd=null;
+                       eobj.played=true;    
+                       //console.log("NOTEOFF ( " + eobj.noteNum + ") ")  ;
+                     }
+
+                     lastOn=0;
+                   } else {
+                      if (ds.latishP(this.d[n][0]) && (! eobj.played)){
+                        //console.log("NOWISH NOTEOFF ( " + eobj.noteNum + ") IGNORED")  ;
+                      }
+                    }
+                  } // removed
+               } // noeoff
+
+
+             } else {  // [t,y,z, obj], there is no object on this array element 
+               dispPy = this.d[n][1]
+
+               // Display the dot signalling the beginning of the gesture 
+             if (n===0){
+                // Set any attributes as desired
+                pt = utils.canvas2Px(score, {x: dispPx, y: dispPy});
+                this.svgElmt.setAttribute("cx", pt.x);
+                this.svgElmt.setAttribute("cy", pt.y);
+                // Add to a parent node; document.documentElement should be the root svg element.
+
+                //console.log("push NO NOTE " + dispPx + " , " + dispPy);
+                gesturePath.push({x : dispPx, y: dispPy});
+              }
+            }// if not removed already
             
           } // done with the list 
 
            // if you've gone through the list, and there is a note on (with no corresponding note off) draw it "so far"
            if (lastOn != 0){
 
-            pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
-            tempNoteSvgRect.setAttribute("x", pt.x);
-            tempNoteSvgRect.setAttribute("y", pt.y);
-            pt = utils.canvas2Px(score, {x: m_scoreEvent.phraseLock-tempNoteOnX, y: 0});
-            tempNoteSvgRect.setAttribute("width", pt.x);
+            if (tempNoteSvgRect && (! tempNoteSvgRect.removed)){
+              pt = utils.canvas2Px(score, {x: tempNoteOnX, y: tempNoteOnY});
+              tempNoteSvgRect.setAttribute("x", pt.x);
+              tempNoteSvgRect.setAttribute("y", pt.y);
+              temp = utils.canvas2Px(score, {x: m_scoreEvent.phraseLock-tempNoteOnX, y: 0});
+              tempNoteSvgRect.setAttribute("width", temp.x);
 
-            dangling = lastOn;
-            lastOn=0; 
+
+              dangling = lastOn;
+              lastOn=0; 
+            }
 
           } else {
             dangling=0;
@@ -169,11 +189,11 @@ define(
           if (gesturePath.length > 0){
             // always push "end" point on to gesture path for plotting
             if (this.e){
-              gesturePath.push({x : dispPx=time2Px(this.e), y: gesturePath[0].y});
+              gesturePath.push({x : dispPx=ds.time2Px(this.e), y: gesturePath[0].y});
             } else {
               gesturePath.push({x : m_scoreEvent.phraseLock, y: gesturePath[0].y});
             }
-            //gesturePath.push({x : Math.max(m_scoreEvent.phraseLock, dispPx=time2Px(this.e)), y: gesturePath[0].y});
+            //gesturePath.push({x : Math.max(m_scoreEvent.phraseLock, dispPx=ds.time2Px(this.e)), y: gesturePath[0].y});
 
             pt = utils.canvas2Px(score, {x: gesturePath[0].x, y: gesturePath[0].y});
             pathString = "M " + pt.x + "," + pt.y ;
@@ -454,8 +474,8 @@ define(
           for(var n=0;n<this.d.length;n++){
               if (this.d[n].length >=4){
                 eobj=this.d[n][3];
-                if (eobj.noteSvgRect){
-                  console.log("removing nodeSvgRect");
+                if (eobj.noteSvgRect && (! eobj.noteSvgRect.removed)){
+                  //console.log("removing nodeSvgRect");
                   svgscore.removeChild(eobj.noteSvgRect);
                 } 
               }             // override to so whatever you need to do to get the element off the screen or whatever

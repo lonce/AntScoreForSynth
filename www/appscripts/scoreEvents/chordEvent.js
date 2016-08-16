@@ -18,8 +18,10 @@ define(
             // args: 
             //  ctx - 2D canvax drawing contex
             //  time2Px = function for translating the time sampls on these objects to pixel for drawing
-            draw: function(ctx, time2Px){
-               var dispPx=time2Px(this.d[0][0]);
+            draw: function(ds){
+               var ctx=ds.canvas.getContext("2d");
+
+               var dispPx=ds.time2Px(this.d[0][0]);
                // Display the element
                ctx.fillStyle = this.color;
                ctx.fillText(this.s + this.pitchVal, dispPx, this.d[0][1]);
