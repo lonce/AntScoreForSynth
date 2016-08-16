@@ -265,7 +265,7 @@ require(
 
 		//-----------------------------------------------------------------------------
 		//var newSoundSelector = window.document.getElementById("newSoundSelector")
-		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Pentatonic Tone"); // last arg is an (optional) default sound to load
+		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Dong"); // last arg is an (optional) default sound to load
 		function newSoundHandler(currentSMFactory) {
 			var model = soundSelect.getModelName();
 			//agentMan.agent && agentMan.agent.setSoundSelector(soundSelect);
