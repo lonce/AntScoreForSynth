@@ -8,9 +8,9 @@
 */
 
 require(
-	["require", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentManager", "config", "userConfig",  "chatter", "widgets/svgGhostScore", "widgets/privateSpaceFactory"],
+	["require", "midiFactory", "soundSelect", "comm", "utils", "touch2Mouse", "canvasSlider", "soundbank",  "scoreEvents/scoreEvent", "tabs/pitchTab", "tabs/rhythmTab", "tabs/chordTab",    "tabs/selectTab", "agentManager", "config", "userConfig",  "chatter", "widgets/svgGhostScore", "widgets/privateSpaceFactory"],
 
-	function (require, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentMan,  config, userConfig,  chatter, svgGhostScore, privateSpaceFactory) {
+	function (require, midiFactory, soundSelect, comm, utils, touch2Mouse, canvasSlider, soundbank, scoreEvent, pitchTabFactory, rhythmTabFactory, chordTabFactory,  selectTabFactory, agentMan,  config, userConfig,  chatter, svgGhostScore, privateSpaceFactory) {
 
 
 		//var mphraseLock.pixelX_agent;
@@ -18,6 +18,9 @@ require(
 		agentMan.initialize(soundSelect);
 
 		userConfig.on("submit", function(){
+
+			colorIDMap[myID]=userConfig.color;
+
 			if (userConfig.player === "agent"){
 				console.log("you will play with (or as) an agent");
 				//m_agent=agentPlayer();
@@ -213,7 +216,17 @@ require(
 			}
 		}
 
-				var theCanvas = document.getElementById("score");
+		dynamicScore.clear = function(){
+			var elmt;
+			for(i=displayElements.length-1;i>=0;i--){
+				elmt=displayElements.pop();
+				elmt.destroy();
+			}
+		}
+		
+
+
+		var theCanvas = document.getElementById("score");
 		dynamicScore.canvas = theCanvas; // eventuall remove theCanvas from global name space
 
 		dynamicScore.pixelShiftPerMs = 1*theCanvas.width/(config.scoreWindowTimeLength);;
@@ -265,7 +278,7 @@ require(
 
 		//-----------------------------------------------------------------------------
 		//var newSoundSelector = window.document.getElementById("newSoundSelector")
-		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Dong"); // last arg is an (optional) default sound to load
+		soundSelect.setCallback("newSoundSelector", newSoundHandler, "Dong 3oct"); // last arg is an (optional) default sound to load
 		function newSoundHandler(currentSMFactory) {
 			var model = soundSelect.getModelName();
 			//agentMan.agent && agentMan.agent.setSoundSelector(soundSelect);
@@ -474,6 +487,13 @@ require(
      			//current_remoteEvent[src]=undefined;
 
 		});
+		//------------------------------------------------------------------------------
+		// Finds the at most one element on the display list from the src with data.gID 
+	// and deletes it
+		comm.registerCallback('transpose', function (data, src){
+				var foo = findElmtWithId(displayElements, data.gID);
+     			foo.transpose(data.steps);
+		});
 
 		//---------------------------------------------------------------------------
 		comm.registerCallback('metroPulse', function(data, src) {
@@ -492,7 +512,9 @@ require(
 			lastSendTimeforCurrentEvent= -Math.random()*sendCurrentEventInterval; // so time-synched clients don't all send their countour chunks at the same time. 
 			serverTimeOrigin=data[0];
 			m_lastDisplayTick=0;
-			displayElements=[];		
+			console.log("clearning display elements");
+			//displayElements=[];	
+			dynamicScore.clear();	
 		});
 		//---------------------------------------------------------------------------
 		// Just make a color for displaying future events from the client with the src ID
@@ -506,21 +528,11 @@ require(
 		// a list of all members including yourself
 		comm.registerCallback('roommembers', function(data, src) {
 			console.log("In rommembers callback, src (to set myID is " + src);
-			myID=src; /// THIS IS WHERE WE FIRST GET IT.
-			//colorIDMap[myID]="#00FF00"; // I am always green
+			myID=src; /// THIS IS WHERE WE FIRST GET IT if we are playing "on line"
 			colorIDMap[myID]=userConfig.color;
 
 			// send everyone our color
 			comm.sendJSONmsg("setColor", {"color": colorIDMap[myID]});
-
-			/*
-			data.forEach(function(m){
-				if (m != myID){
-					console.log("... " + m + " is also in this room");
-					colorIDMap[m]=utils.getRandomColor1(100,255,0,120,100,255);
-				} 
-			});
-			*/
 
 		});
 
@@ -577,20 +589,21 @@ require(
 			console.log("mousedown on privateSpaceSvgCanvas");
 
 			if (e.eventSelection  && e.ctrlKey){
-				console.log("statice space mouse down with EVENT SELECTION");
+				console.log("static space mouse down with EVENT SELECTION");
 				ps.endContour(dynamicScore.t_sinceOrigin); 
 				ps.select(e.eventSelection);
 				dynamicScore.select(false);
 				m_selectedElement = e.eventSelection;
 
-			} /*else if (m_selectedElement && e.ctrlKey){  // duplicate from dynamic to static score
-				var newG = m_selectedElement.duplicate(0,e.offsetY,scoreEvent(m_selectedElement.type));
+			} else if (m_selectedElement && e.ctrlKey){  // duplicate from dynamic to static score
+				console.log("OK, lets copy the phrase to the static score")
+				var newG = m_selectedElement.duplicate(0,e.offsetY,scoreEvent(m_selectedElement.type), ps.getSvgCanvas());
 
 				m_selectedElement.select(false);
 				m_selectedElement=newG;
-				ps.select(e.eventSelection);
+				ps.addGesture(newG, e.offsetX, e.offsetY);
 
-			}*/ else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
+			} else if (radioSelection === "phrase"){ // if not a gesture selection event, then start a new gesture
 				gesture = scoreEvent("phraseGesture");
 				gesture.s= myID;
 				gesture.color="#00FF00";
@@ -672,12 +685,13 @@ require(
 
 		function keyDown(e){
 			var t;
-			if (e.repeat) return;
+			
      		var keyCode = e.which;
 
      		//console.log("keyCode  is " + keyCode + ", and e.key is " + e.key);
      		switch(keyCode){
-     			case 17:   // ignore CTL key
+     			case 17:   // ignore lone CTL key
+     			case 91:   // ignore CMD key
      				return;
      			case 27:    // ESC key deselects
      				dynamicScore.select();
@@ -712,24 +726,48 @@ require(
 
      			case 46: // windows delete key
      			case 8: // mac delete key
-     				if (m_selectedElement){
-     					displayElements.remove(m_selectedElement);
-     					console.log("LOCAL deleting element with gID = " + m_selectedElement.gID);
-     					comm.sendJSONmsg("delete", {"gID": m_selectedElement.gID});
-						m_selectedElement.destroy();
-						m_selectedElement=null;
+     				if (m_selectedElement && (m_selectedElement.s != myID)) return; // you can only delete your own
 
-     				} else if (current_mgesture){
+     				if (current_mgesture){ 
      					displayElements.remove(current_mgesture);
      					console.log("LOCAL deleting element with gID = " + current_mgesture.gID);
      					comm.sendJSONmsg("delete", {"gID": current_mgesture.gID});
      					current_mgesture.destroy();
 						current_mgesture=null;
 
-     				}
+     				} else if (m_selectedElement){
+     					displayElements.remove(m_selectedElement);
+     					console.log("LOCAL deleting element with gID = " + m_selectedElement.gID);
+     					comm.sendJSONmsg("delete", {"gID": m_selectedElement.gID});
+						m_selectedElement.destroy();
+						m_selectedElement=null;
+
+     				} 
      				
      				return;
+
+     				case 38: // down arrow
+     					e.preventDefault();
+     					if (m_selectedElement){
+     						m_selectedElement.transpose(1);
+     					} else if (current_mgesture){
+     						current_mgesture.transpose(1);
+     					}
+     					comm.sendJSONmsg("transpose", {"gID": m_selectedElement.gID, "steps" : 1});
+     					return;
+     				case 40: // down arrow
+     					e.preventDefault();
+     					if (m_selectedElement){
+     						m_selectedElement.transpose(-1);
+     					} else if (current_mgesture){
+     						current_mgesture.transpose(-1);
+     					}
+     					comm.sendJSONmsg("transpose", {"gID": m_selectedElement.gID, "steps" : -1});
+     					return;
 			}
+
+			if (e.repeat) return; // don't want notes repeating on held keys
+
 			if (radioSelection === "phrase"){
 				//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
 
@@ -767,6 +805,35 @@ require(
 				}
 			}
 		}
+
+		midiFactory(function(event, noteNum){
+			console.log("midi event: " + event + ", noteNum: " + noteNum);
+
+			if (radioSelection === "phrase"){
+				//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
+
+				if (! current_mgesture){
+						// AUTO start phrase gesture at now line if keypressed before mousepress
+						phraseLock.pixelX=dynamicScore.nowLinePx+1.5;
+						phraseLock.value=dynamicScore.px2NormFuture(phraseLock.pixelX);
+						
+						if (soundSelect.getModelName()===undefined){
+							console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
+							return;
+						}
+						// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
+						console.log("initiate new contour at the NOW line"); 
+						initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
+				}
+
+				if (current_mgesture){
+					t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
+					current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : event, "noteNum" : noteNum}], true);
+				} else{
+					console.log("no gesture to add noteon event to.")
+				}
+			}
+		});
 
 
 		theCanvas.addEventListener("keyup", keyUp, true);

@@ -27,7 +27,7 @@ define(
             "comm": comm,
 
 
-            duplicate: function(tshift, yshift, newEvent){
+            duplicate: function(tshift, yshift, newEvent, svgScore){
 
                // it would be nice not to have to hardcode this list................
                newEvent.type=this.type;
@@ -38,6 +38,8 @@ define(
                newEvent.font=this.font;
                newEvent.text=this.text;
                newEvent.soundbank=this.soundbank;
+
+               svgScore && newEvent.setScore(svgScore); // so addEvents will appendChild to the destination canvas
 
                if (this.soundName) newEvent.soundName=this.soundName;
                if (this.param1) newEvent.param1=this.param1;
@@ -60,6 +62,10 @@ define(
 
                return newEvent;
             },
+
+            transpose: function(steps){
+
+            }, 
 
             updateMinTime: function(i_arg){
                if (i_arg){

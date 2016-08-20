@@ -284,8 +284,8 @@ define(
            if (n===0){
               svgscore.setAttribute("fill", this.color);  
 
-              this.svgElmt.setAttribute("cx", dispPx);
-              this.svgElmt.setAttribute("cy", dispPy);
+              this.svgElmt.setAttribute("cx", this.clientX);// dispPx);
+              this.svgElmt.setAttribute("cy", this.clientY);;// dispPy);
 
             }
           } // done with the list 
@@ -335,9 +335,21 @@ define(
         }
 
         m_scoreEvent.setScore = function(s){
-          svgscore = s;
-
+          svgscore = s;         
         }
+
+        m_scoreEvent.transpose = function(steps){
+          var eobj;
+          for(var n=0;n<this.d.length;n++){    
+            if (this.d[n].length >=4){
+              eobj=this.d[n][3];
+              if ((eobj.event === "noteOn") || (eobj.event === "noteOff")){
+                eobj.noteNum += steps;
+              }
+            }
+          }
+        }
+
 
        //m_scoreEvent.addEvent=function(t,y,z,eobj){
       m_scoreEvent.addEvent=function(evArray, broadcastP){

@@ -4,6 +4,7 @@ define(
 
 		var host = document.location.host;
 		var ws = new WebSocket('ws://' + host);
+		var roomSubscription = "";
 
 		console.log("host is " + host);
 
@@ -36,7 +37,12 @@ define(
 
 		// For sending local client events to the server
 		var sendJSONmsg = function (name, data) {
-			ws.send(JSON.stringify({n: name, d: data}));//, {mask: true});
+			if (name === "subscribe"){
+				roomSubscription = data[0];
+			} 
+			if (! (roomSubscription === "")) {
+				ws.send(JSON.stringify({n: name, d: data}));//, {mask: true});
+			}
 		};
 
 

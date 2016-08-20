@@ -6,6 +6,8 @@ function () {
 		//var height = svgCanvas.getBoundingClientRect().height;
 		var pixPerMs = svgCanvas.getBoundingClientRect().width/timespan; 
 
+		svgCanvas.AAAAAAAAAAAAA = "BBBBBBBBBBBBBBBB"
+
 		//--------   make a canvas into a canvasScore by adding methods------//
 		var svgBkgd = document.createElementNS("http://www.w3.org/2000/svg", "rect");
 		svgBkgd.setAttribute("x", 0);
@@ -30,6 +32,9 @@ function () {
 		
 		//svgCanvas.AAAAAAAAA = "AAAAAAAAAAA";
 
+		privateSpace.getSvgCanvas = function(){
+			return svgCanvas;
+		}
 
 		privateSpace.displayElements=[]; // list of score elememnts
 		privateSpace.currentGesture=null; // the one in the middle of being drawn
@@ -120,6 +125,18 @@ function () {
 				privateSpace.currentGesture=null;
 			}
 		}
+
+
+		privateSpace.addGesture = function(g, x, y){
+			g.setScore(svgCanvas); 
+
+			privateSpace.displayElements.push(g);
+
+			g.clientX = x;
+			g.clientY = y;
+			privateSpace.select(g);
+		}
+
 
 		privateSpace.drawScreen = function(t){ // should be passing the privateSpace, not the canvas, to the gesture so that it has access to functions such as ms2pix()
 			if (privateSpace.currentGesture){

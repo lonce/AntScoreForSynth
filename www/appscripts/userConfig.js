@@ -37,9 +37,9 @@ define(
       submit_btn.value = "Submit";
 
     var color_input = document.createElement("input");
-      var picker = new jscolor(color_input);
-      picker.fromString("000000");      
-      color_input.className = "color";
+    var picker = new jscolor(color_input);
+    picker.fromString("#CCCCCC");      
+    color_input.className = "color";
 
 
     var legend = document.createElement("legend");
