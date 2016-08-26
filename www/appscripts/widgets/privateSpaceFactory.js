@@ -112,6 +112,11 @@ function () {
 			privateSpace.currentGesture.addEvent([t, 0, z, {"event" : "keyUp", "key" : e.key}], true);
 	     }
 
+	     privateSpace.midiEvent = function (event, noteNum, t, z, radioSelection){
+	     	privateSpace.currentGesture.addEvent([t, 0, z, {"event" : event, "noteNum" : noteNum}], true);
+
+	     }
+
 
 		privateSpace.endContour = function(t){
 			if (privateSpace.currentGesture){

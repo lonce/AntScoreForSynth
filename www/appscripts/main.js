@@ -809,29 +809,36 @@ require(
 		midiFactory(function(event, noteNum){
 			console.log("midi event: " + event + ", noteNum: " + noteNum);
 
-			if (radioSelection === "phrase"){
-				//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
+			if (document.activeElement === theCanvas){
+				
+				if (radioSelection === "phrase"){
+					//console.log("keyDown in phraseMode: " + keyCode + ", with value = " );
 
-				if (! current_mgesture){
-						// AUTO start phrase gesture at now line if keypressed before mousepress
-						phraseLock.pixelX=dynamicScore.nowLinePx+1.5;
-						phraseLock.value=dynamicScore.px2NormFuture(phraseLock.pixelX);
-						
-						if (soundSelect.getModelName()===undefined){
-							console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
-							return;
-						}
-						// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
-						console.log("initiate new contour at the NOW line"); 
-						initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
-				}
+					if (! current_mgesture){
+							// AUTO start phrase gesture at now line if keypressed before mousepress
+							phraseLock.pixelX=dynamicScore.nowLinePx+1.5;
+							phraseLock.value=dynamicScore.px2NormFuture(phraseLock.pixelX);
+							
+							if (soundSelect.getModelName()===undefined){
+								console.log("keydown: soundselect.model name is " + soundSelect.getModelName());
+								return;
+							}
+							// it would be great to set the y value for this gesture to be at the level where the first note is displayed....
+							console.log("initiate new contour at the NOW line"); 
+							initiateContour(phraseLock.pixelX,  theCanvas.height*(Math.random()*.5 + .25));
+					}
 
-				if (current_mgesture){
-					t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
-					current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : event, "noteNum" : noteNum}], true);
-				} else{
-					console.log("no gesture to add noteon event to.")
+					if (current_mgesture){
+						t=dynamicScore.t_sinceOrigin+config.scoreWindowTimeLength*(config.futurePortion)*phraseLock.value;
+						current_mgesture.addEvent([t, 0, leftSlider.value, {"event" : event, "noteNum" : noteNum}], true);
+					} else{
+						console.log("no gesture to add noteon event to.")
+					}
 				}
+			} else if (document.activeElement === privateSpaceSvgCanvas){
+				console.log("midi to private space");
+				ps.midiEvent(event, noteNum, dynamicScore.t_sinceOrigin, leftSlider.value, radioSelection);
+				//ps.keyDown(e, dynamicScore.t_sinceOrigin, leftSlider.value, radioSelection);
 			}
 		});
 
