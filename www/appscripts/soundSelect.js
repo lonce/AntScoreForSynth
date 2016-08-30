@@ -26,8 +26,8 @@ require.config({
 	}
 });
 define(
-	["require", "jsaSound/jsaSndLib/sliderBox", "jsaSound/jsaSndLib/config", "utils"],//, "jquery"],
-	function (require, makeSliderBox, jsaSoundConfig, utils) {
+	["require", "config", "jsaSound/jsaSndLib/sliderBox", "jsaSound/jsaSndLib/config", "utils"],//, "jquery"],
+	function (require, config, makeSliderBox, jsaSoundConfig, utils) {
 
 		// This funciton just needs to be run once when a program is loaded. 
 		// After that, uses can listen for "changes" to the selector element on the DOM, and then call the getModelName we have added to the sector in order to retreive the model name. 
@@ -73,7 +73,7 @@ define(
 			return retval;
 		}
 
-		var useList=["AntScore"];
+		var useList=[config.soundCollection];
 		// Create the html select box using the hard-coded soundList above
 		function makeSoundListSelector(defaultSoundName) {
 			var i;

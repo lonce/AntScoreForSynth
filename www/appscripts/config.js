@@ -18,6 +18,7 @@ define(
 		exports.futurePortion = 2/3;
 		exports.pastPortion = 1-exports.futurePortion;
 		exports.maxContourWidth=0; //set this in main 
+		exports.soundCollection="Authorship";
 		return exports;
 });
 
